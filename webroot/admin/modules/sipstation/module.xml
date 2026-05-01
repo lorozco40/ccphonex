@@ -1,0 +1,111 @@
+<module>
+	<rawname>sipstation</rawname>
+	<repo>standard</repo>
+	<name>SIPSTATION</name>
+	<version>15.0.4.2</version>
+	<category>Connectivity</category>
+	<menuitems>
+		<sipstation needsenginedb="yes">SIPSTATION</sipstation>
+	</menuitems>
+	<description>
+		This module is used to configure, manage and troubleshoot your SIPSTATION(tm) FreePBX.com SIP trunks and DIDs. The license on this source code is NOT GPL Open Source, it is a proprietary Free to Use license.
+	</description>
+	<publisher>Sangoma Technologies Corporation</publisher>
+	<license>Commercial</license>
+	<licenselink>https://portal.sangoma.com/marketing/resources/2808/Sangoma%20Corporate/Terms%20of%20Service%20and%20User%20License%20Agreement/FreePBXCommercialModule-EndUserAgreement.txt</licenselink>
+	<changelog>
+		*15.0.4.2* dont delete key automatically if BADKEY is sent 
+		*15.0.4.1* Fix backup and restore
+		*15.0.4* SIPStation Module Doesnt honor status from KATANA API
+		*15.0.3.5* SIPStation Module Doesn't honor status from KATANA API
+		*15.0.3.4* fixing legacy restore
+		*15.0.3.3* backup and restore
+		*15.0.3.1* FREEPBX-15555 Exception Asterisk is not connected error issue fix
+		*15.0.3* Feature/bckrstr
+		*15.0.2* Packaging of ver 15.0.2
+		*13.0.14.9* Change trunk names
+		*13.0.14.8* FREEPBX-16783
+		*13.0.14.7* FREEPBX-16792
+		*13.0.14.6* FREEPBX-16806 fix oobe page
+		*13.0.14.5* Reset URL on install
+		*13.0.14.4* Inital PJSIP support
+		*13.0.14.3* FREEPBX-16668 Fix function names.
+		*13.0.14.2* Resolve api limitation
+		*13.0.14.1* Refreshing SMS should not timeout
+		*13.0.14* Overhaul backend for API changes
+		*13.0.13.27* FREEPBX-15543 Formatting breaks when ecid is false
+		*13.0.13.26* Upgrade to version 1.0.3 of SIPStation API
+		*13.0.13.25* FREEPBX-15543 QA Fix formatting in the failover table
+		*13.0.13.24* Bug fix in refresh script
+		*13.0.13.23* API updates for sms
+		*13.0.13.22* Speed up sms polling in UCP by over 100%
+		*13.0.13.21* FREEPBX-15757 - show the apply changes button when we need the dialplan, FREEPBX-15543 Fix emergencycid update, FREEPBX-15568 Fix areacode update, FREEPBX-14586 Fix whoops on rapid refresh
+		*13.0.13.20* Update API calls
+		*13.0.13.19* FREEPBX-15013 (FREEI-356), SIP-1215
+		*13.0.13.18* FREEPBX-15001 Seperate classes in UI for GW1 and GW2
+		*13.0.13.17* FREEPBX-14795 Fix online polling
+		*13.0.13.16* Add trunk groups
+		*13.0.13.15* FREEPBX-14569 Add an outdated message
+		*13.0.13.14* FREEPBX-14076 fix issue with javascript dependency changing in newer versions
+		*13.0.13.13* Update languages
+		*13.0.13.12* Make sure API actually HAS messages, else use Asterisk
+		*13.0.13.11* Use new API
+		*13.0.13.10* Support for MMS Services
+		*13.0.13.9* Use correct class declarations
+		*13.0.13.8* SMS Adaptor needs to be static
+		*13.0.13.7* FREEPBX-11094 FREEPBX-11031
+		*13.0.13.4* FREEPBX-11180
+		*13.0.13.3* Dashboard notice about DID routing
+		*13.0.13.2* Fix double send
+		*13.0.13.1* Fix debug parameter
+		*13.0.13* Fix permission management in User Manager
+		*13.0.12* Add ajax feedback toast
+		*13.0.11* SMS Fixes
+		*13.0.10* FREEPBX-9748 Cannot save Global Failover number within the SIPSTATION module
+		*13.0.9* FREEPBX-9792 cleanup views and fix functionality when changing pages
+		*13.0.8* Fixed bug with SMS
+		*13.0.7* During uninstall check to make sure we are connected to astman properly
+		*13.0.6* Allow uninstall and disable
+		*13.0.5* FREEPBX-9565 Grammar and spelling updates.
+		*13.0.4* FREEPBX-9501 Error page when enabling SMS for a user in User Management
+		*13.0.3* Numerous fixes
+		*13.0.2* SMS settings in inbound routes
+	</changelog>
+	<depends>
+		<module>core ge 13.0.121</module>
+		<module>framework ge 13.0.193</module>
+		<module>userman ge 13.0.47</module>
+		<module>sipsettings ge 13.0.26</module>
+		<module>certman ge 13.0.37</module>
+	</depends>
+	<supported>
+		<version>15.0</version>
+	</supported>
+	<hooks>
+		<sms namespace="FreePBX\modules" class="Sms">
+			<method namespace="FreePBX\Modules" class="Sipstation" callingMethod="loadAdaptor">smsAdaptor</method>
+		</sms>
+		<core class="Core" namespace="FreePBX\modules">
+			<method callingMethod="hookTabs" namespace="FreePBX\Modules" class="Sipstation">coreDIDHook</method>
+		</core>
+		<userman class="Userman" namespace="FreePBX\modules">
+			<method callingMethod="delGroup" namespace="FreePBX\Modules" class="Sipstation">usermanDelGroup</method>
+			<method callingMethod="addGroup" namespace="FreePBX\Modules" class="Sipstation">usermanAddGroup</method>
+			<method callingMethod="updateGroup" namespace="FreePBX\Modules" class="Sipstation">usermanUpdateGroup</method>
+			<method callingMethod="myShowPage" namespace="FreePBX\Modules" class="Sipstation">usermanShowPage</method>
+			<method callingMethod="delUser" namespace="FreePBX\Modules" class="Sipstation">usermanDelUser</method>
+			<method callingMethod="addUser" namespace="FreePBX\Modules" class="Sipstation">usermanAddUser</method>
+			<method callingMethod="updateUser" namespace="FreePBX\Modules" class="Sipstation">usermanUpdateUser</method>
+		</userman>
+		<ucp class="Ucp">
+			<method namespace="FreePBX\Modules" class="Sipstation" callingMethod="constructModuleConfigPages">ucpConfigPage</method>
+			<method namespace="FreePBX\Modules" class="Sipstation" callingMethod="addUser">ucpAddUser</method>
+			<method namespace="FreePBX\Modules" class="Sipstation" callingMethod="updateUser">ucpUpdateUser</method>
+			<method namespace="FreePBX\Modules" class="Sipstation" callingMethod="delUser">ucpDelUser</method>
+			<method namespace="FreePBX\Modules" class="Sipstation" callingMethod="addGroup">ucpAddGroup</method>
+			<method namespace="FreePBX\Modules" class="Sipstation" callingMethod="updateGroup">ucpUpdateGroup</method>
+			<method namespace="FreePBX\Modules" class="Sipstation" callingMethod="delGroup">ucpDelGroup</method>
+		</ucp>
+	</hooks>
+	<oobe method="oobeHook" priority="5000"/>
+</module>

@@ -1,0 +1,236 @@
+h1, h2, h3, h4, h5 {
+    text-align: center;
+}
+.navbar {
+    padding: 3px 1rem;
+    border-bottom: 1px solid #CCCCCC;
+}
+.navbar-brand {
+    padding: 0;
+}
+.navbar-dark .navbar-nav .active>.nav-link, .navbar-dark .navbar-nav .nav-link.active, .navbar-dark .navbar-nav .nav-link.show, .navbar-dark .navbar-nav .show>.nav-link {
+    color: #555555;
+}
+.navbar-dark .navbar-nav .nav-link {
+    color: #AAAAAA;
+}
+.navbar-dark .navbar-nav .nav-link:focus, .navbar-dark .navbar-nav .nav-link:hover {
+    color: #000000;
+}
+.navbar .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(96, 115, 6, 1)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E")
+}
+#two_col {
+    margin-bottom: 20px;
+}
+#sidebar {
+    flex: 0 0 265px;
+    -ms-flex:  0 0 265px;
+}
+.bg-dark {/*Barra superior en negro y en amarillo el nombre*/
+    background-color: #000000 !important;
+    color: #fff71c;
+}
+.tab-content {
+    padding-top: 15px;
+}
+.dropdown-item:hover {
+    background-color: #212429;
+    color: #fff;
+}
+.pastilla {
+    border: 1px solid #CCCCCC;
+    border-radius: 5px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+.cerrarpastilla {
+    float:right;
+    cursor: pointer;
+    margin: -9px -5px 5px 0;
+}
+.blockForm {
+    border: 1px solid #CCCCCC;
+    padding: 20px;
+    border-radius: 5px;
+}
+#sipClient {
+    background-color: #BBBBBB !important;
+}
+#btnVol {
+    height: 38px;
+}
+#sipClient #numDisplay {
+    width: 78%  !important;
+}
+#reprevs tbody {
+    cursor: pointer;
+}
+#reprevs tbody tr.active {
+    background-color: #AAAAAA;
+}
+#cerrarpreview {
+    cursor: pointer;
+}
+.nav-tabs {
+    border-bottom: 0;
+}
+.nav-tabs .nav-link.active {
+    background-color: #BBBBBB;
+}
+
+/*DashBoard Graficas*/
+#donut-example text, #donut-example-out text{
+  fill: #000;
+}
+.card{
+  padding: 5px;
+  background-color: transparent;
+  margin-bottom: 5px;
+}
+.card i {
+    font-size: 40px;
+}
+.card span {
+    position: absolute;
+    font-size: 30px;
+    margin: -4px 0 0 30px;
+}
+.card cite {
+    float: right;
+    margin-top: 16px;
+}
+.card-outline-total {
+    border: 2px solid rgba(0, 161, 251, 1);
+}
+.card-outline-att {
+    border: 2px solid rgba(78,181,102,1);
+}
+.card-outline-aba {
+    border: 2px solid rgba(252, 4, 4, 1);
+}
+.card-outline-vm {
+    border: 2px solid rgba(255,215,0,1);
+}
+#dashboard #donut-example, #dashboard #donut-example-out, #dashboard #area-example, #dashboard #area-week, #dashboard #area-example-out {
+    display: block;
+    height: 170px;
+}
+#dashboard .text-left {
+    margin-bottom: 2.1rem;
+}
+.morris-chart text {
+  fill: black;
+}
+
+/* Tablas reportes */
+table {
+    width: 100%;
+}
+table td, table th {
+    padding: 3px 5px !important;
+    font-size: small;
+}
+
+/*  ESTILOS DEL TELÉFONO */
+#sipClient {
+    background-color: #343a40;
+}
+#sipClient p {
+    margin: 0;
+    padding: 0 0 10px 0;
+    line-height: 18px;
+}
+#sipClient .sipStatus {
+    background-color: #111;
+    color: #999;
+}
+#sipClient #txtCallStatus {
+    color: #FFFFFF;
+}
+#sipClient #sip-dialpad {
+    width: 213px;
+    margin: 10px auto 0;
+}
+#sipClient #sip-dialpad .col-xs-4 {
+    text-align: center;
+}
+#sipClient .digit {
+    height: 45px;
+    width: 55px;
+    margin: 0 8px 10px !important;
+    background-color: #f8f8f8;
+    font-weight: 300;
+    font-size: 24px;
+    border-radius: 100px;
+    line-height: 21px;
+    padding-top: 3px;
+    float: left;
+}
+#sipClient .digit span {
+    display: block;
+    color: #999;
+    font-size: 10px;
+    font-weight: normal;
+}
+#sipClient .sip-panel h3 {
+    margin-top: 22px;
+}
+#sipClient #sip-splash {
+    height: 371px;
+}
+#sipClient #sip-splash .fa {
+    margin-bottom: 15px;
+}
+#sipClient #sip-splash .fa-circle {
+    color: #5cb85c;
+}
+#sipClient #sip-log .panel-heading {
+    padding: 10px 8px;
+}
+#sipClient #sip-logitems {
+    overflow: auto;
+    color: #444;
+}
+#sipClient #sldVolume {
+    width: 140px;
+    margin: 0 auto;
+    box-shadow: none;
+}
+#sipClient .sip-logitem {
+    padding: 4px;
+}
+#sipClient #numDisplay::-webkit-input-placeholder {
+    color: #bbb;
+}
+#sipClient #numDisplay::-moz-placeholder {
+    color: #bbb;
+}
+#sipClient #numDisplay::-ms-input-placeholder {
+    color: #bbb;
+}
+#sipClient #numDisplay::-moz-placeholder {
+    color: #bbb;
+}
+/*Solo para Gráfico Histo*/
+.de{
+    padding-left: 59px;
+}
+.a{
+    padding-left: 68px;
+}
+.camp{
+    padding-left: 10px;
+}
+.nombre, .apellido{
+    padding: 5px 34px 5px 34px;
+}
+.contacto{
+    padding: 5px 31px 5px 31px;
+}
+.fecha{
+    padding: 5px 14px 5px 14px;
+}
+.obser{
+    padding: 5px 10px 5px 10px;
+}

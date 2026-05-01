@@ -1,0 +1,8 @@
+{
+    "require": {
+        "box/spout": "^2.7",
+        "mpdf/mpdf": "^7.1",
+        "marcelog/pagi": "2.*",
+        "marcelog/pami": "2.*"
+    }
+}

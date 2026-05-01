@@ -1,0 +1,17 @@
+# Logs y temporales
+*.log
+*.pid
+*.sock
+*.tmp
+
+# Editor
+.vscode/
+.idea/
+.DS_Store
+
+# Runtime local
+**/cache/
+**/tmp/
+
+# Datos operativos excluidos por politica
+ops/audios_sep/

@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "jsrsasign": "^8.0.12",
+    "minimist": "^1.2.8"
+  }
+}

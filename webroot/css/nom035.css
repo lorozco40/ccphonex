@@ -1,0 +1,27 @@
+body, .navbar {
+    background-color: #e6e6e6 !important;
+}
+.navbar {
+    border-bottom: 2px solid #b553a6;
+}
+.navbar-dark .navbar-nav .nav-link,
+.navbar-dark .navbar-nav .active>.nav-link,
+.navbar-dark .navbar-nav .nav-link.active,
+.navbar-dark .navbar-nav .nav-link:hover,
+.navbar-dark .navbar-nav .nav-link.show,
+.navbar-dark .navbar-nav .show>.nav-link,
+.esblanco, .esblanco a, .esblanco a:hover, .esblanco a:visited, .esblanco a:active {
+    color: #305ca7; /* #305ca7 azul #b553a6 rosa */
+    font-weight: bold;
+}
+.nonom035 {
+    display: none;
+}
+.nom035 {
+    display: block !important;
+}
+h1 {
+    text-transform: uppercase;
+    color: #305ca7;
+    text-align: left;
+}

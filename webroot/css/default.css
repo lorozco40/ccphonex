@@ -1,0 +1,402 @@
+html {
+    height: 100%;
+    font-family: "Open Sans", sans-serif;
+    font-size: 14px;
+}
+body {
+    min-height: 100%;
+    background: #414e60; /* For browsers that do not support gradients */
+    background: -webkit-linear-gradient(left top, #414e60, #94a3b1); /*Safari 5.1-6*/
+    background: -o-linear-gradient(bottom right, #414e60, #94a3b1); /*Opera 11.1-12*/
+    background: -moz-linear-gradient(bottom right, #414e60, #94a3b1); /*Fx 3.6-15*/
+    background: linear-gradient(to bottom right,  #414e60, #94a3b1); /*Standard*/
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    color: #EEEEEE;
+}
+
+/* Estilos barra de navegación navbar */
+.navbar {
+    background-color: #000000 !important;
+}
+.nav-tabs {
+    border-bottom: 0;
+}
+.nav-tabs .nav-item {
+    border: 1px solid transparent;
+    margin-bottom: 0;
+}
+.nav-tabs .nav-link:hover {
+    border-color: transparent;
+}
+.nav-tabs .nav-link {
+    background-color: rgba(50, 50, 50, 0.5);
+    border-color: transparent;
+    color: #EEEEEE;
+}
+.nav-tabs .nav-link.active {
+    background-color: #000000;
+    color: #EEEEEE;
+    border-color: transparent;
+}
+.dropdown-menu {
+    background-color: #343A40;
+}
+.dropdown-item {
+    color: #fff;
+}
+.pastilla {
+    background-color: rgba(50,50,50,.5);
+    border-radius: 5px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+.pastilla.pastillablanca {
+    background-color: #EEEEEE;
+    color: #000000;
+}
+.cerrarpastilla {
+    float:right;
+    cursor: pointer;
+    margin: -9px -5px 5px 0;
+}
+.tab-pane {
+    padding: 10px 0px 20px;
+}
+.input-group-addon {
+    border: 0;
+}
+.cabecera {
+    border-radius: 10px;
+    background-color: #ddd;
+    padding: 10px;
+    overflow: hidden;
+    margin-top: 15px;
+}
+.text-right a {
+    margin: 0.5em auto;
+}
+.tooltip {
+    opacity:1;
+    font-size: inherit;
+}
+a {
+    color: #8ec5fd;
+}
+a.tooltip::before {
+    content: attr(data-tip) ;
+    font-size: 10px;
+    position:absolute;
+    z-index: 999;
+    white-space:nowrap;
+    bottom:9999px;
+    left: 50%;
+    background:#000;
+    color:#e0e0e0;
+    padding:0px 7px;
+    line-height: 24px;
+    height: 24px;
+    opacity: 0;
+    transition:opacity 0.4s ease-out;
+}
+a.tooltip:hover::before {
+    opacity: 1;
+    bottom:-35px;
+}
+#two_col {
+    margin-bottom: 20px;
+}
+.main {
+    background: rgba(50, 50, 50, 0.5);
+    border-radius: 5px;
+    margin-top:15px;
+    padding: 15px 30px;
+}
+
+/* Estilos para bloques de formularios */
+.blockForm {
+    background-color: rgba(50, 50, 50, 0.5);
+    padding: 20px;
+    border-radius: 5px;
+}
+.blockForm label {
+    padding: 0px 5px;
+    color: #17a2b8;
+    margin: 0;
+}
+.blockForm input, .blockForm textarea {
+    padding: 1px 5px;
+    border-color: transparent;
+}
+.table {
+    color: #FFF;
+}
+table.table-long thead {
+    background-color: #343A40;
+}
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(50, 50, 50, 0.5);
+}
+.table td, .table th {
+    padding: .5rem;
+    vertical-align: middle;
+    border: 0;
+}
+
+/* Estilos para envío de SMS */
+.form-controlsmsform input {
+    width: 50%;
+}
+.form-control {
+    padding: 0 5px;
+}
+.form-control[type="password"] {
+    padding: 2px 5px;
+}
+.form-control:disabled, .form-control[readonly] {
+    background-color: #b6cbe0;
+}
+.pTabla textarea {
+    background-color: transparent;
+    border: 1px dotted #EEEEEE;
+    color: #EEEEEE;
+}
+
+/* Estilos para sección eMail */
+#email.tab-pane {
+    padding: 15px;
+}
+
+/* Estilos para Reportes */
+div.total {
+    background-color: #2b2b2b !important;
+    font-weight: bold;
+}
+.pagination > .active > a, .pagination > .active > a:focus, .pagination > .active > a:hover, .pagination > .active > span, .pagination > .active > span:focus, .pagination > .active > span:hover {
+    z-index: 3;
+    color: #fff;
+    cursor: default;
+    background-color: #337ab7;
+    border-color: #337ab7;
+}
+.mainaldo {
+    background: rgba(0, 0, 0, 1);
+    min-height: 400px;
+    border-radius: 5px;
+    margin-top:15px;
+    padding: 15px 30px;
+}
+#buttons-collection {
+    margin-left: 1em;
+    align-self: center;
+    text-align: center;
+}
+
+/* Reporte inbound */
+td audio {
+    margin: -6px auto -11px;
+    max-width: 200px;
+}
+
+/* DashBoard */
+#dashboard #donut-example text, #dashboard #donut-example-out text, #dashboard #area-example text, #dashboard #area-week text, #dashboard #area-example-out text {
+    fill: #fff;
+}
+
+/* Otros */
+.breadcrumb {
+    background-color: #4a4a4a;
+    border-radius: .25rem;
+}
+#asistransfmodal {
+    color: #0088FF;
+}
+.modal-header .close {
+    color: white;
+}
+.modal-content {
+    background-color: #4a5220;
+}
+#modalancho {
+    max-width: 350px !important;
+}
+.collapse.show {
+    visibility: visible;
+}
+.collapsing {
+    visibility: visible;
+    height: 0;
+    -webkit-transition-property: height, visibility;
+    transition-property: height, visibility;
+    -webkit-transition-timing-function: ease-out;
+    transition-timing-function: ease-out;
+}
+.collapsing.width {
+    -webkit-transition-property: width, visibility;
+    transition-property: width, visibility;
+    width: 0;
+    height: 100%;
+    -webkit-transition-timing-function: ease-out;
+    transition-timing-function: ease-out;
+}
+
+/*  ESTILOS DEL TELÉFONO */
+#sipClient {
+    background-color: #343a40;
+}
+#sipClient p {
+    margin: 0;
+    padding: 0 0 10px 0;
+    line-height: 18px;
+}
+#sipClient .sipStatus {
+    background-color: #000000;
+    color: #FFFFFF;
+}
+#sipClient #txtCallStatus {
+    color: #fff;
+}
+#sipClient #sip-dialpad {
+    width: 213px;
+    margin: 10px auto 0;
+}
+#sipClient #sip-dialpad .col-xs-4 {
+    text-align: center;
+}
+#sipClient .digit {
+    height: 40px;
+    width: 55px;
+    margin: 0 8px 8px;
+    background-color: #f8f8f8;
+    font-weight: 300;
+    font-size: 22px;
+    border-radius: 10px;
+    line-height: 18px;
+    padding-top: 3px;
+    float: left;
+}
+#sipClient .digit span {
+    display: block;
+    color: #999;
+    font-size: 10px;
+    font-weight: normal;
+}
+#sipClient .sip-panel h3 {
+    margin-top: 22px;
+}
+#sipClient #sip-splash {
+    height: 371px;
+}
+#sipClient #sip-splash .fa {
+    margin-bottom: 15px;
+}
+#sipClient #sip-splash .fa-circle {
+    color: #5cb85c;
+}
+#sipClient #sip-log .panel-heading {
+    padding: 10px 8px;
+}
+#sipClient #sip-logitems {
+    overflow: auto;
+    color: #444;
+}
+#sipClient #sldVolume {
+    width: 140px;
+    margin: 0 auto;
+    box-shadow: none;
+}
+#sipClient .btnCall {
+    font-size: 18px;
+}
+#sipClient .btnCall i {
+    float: right;
+    margin-top: 5px;
+}
+#sipClient .sip-logitem {
+    padding: 4px;
+}
+#sipClient #numDisplay::-webkit-input-placeholder {
+    color: #bbb;
+}
+#sipClient #numDisplay::-moz-placeholder {
+    color: #bbb;
+}
+#sipClient #numDisplay::-ms-input-placeholder {
+    color: #bbb;
+}
+
+/* Estilos despachador */
+#disp_page .card {
+    background-color: #424a52;
+    margin-top: 10px
+}
+#disp_page .card li {
+    color: #444444;
+}
+/*Solo para Gráfico Histo*/
+.de{
+    padding-left: 53px;
+}
+.a{
+    padding-left: 61px;
+}
+.camp{
+    padding-left: 10px;
+}
+.nombre, .apellido{
+    padding: 5px 31px 5px 31px;
+}
+.contacto{
+    padding: 5px 42px 5px 42px;
+}
+.obser{
+    padding: 5px 10px 5px 10px;
+}
+.date{
+    width: 14.5em;
+}
+
+/*******************************************************************************************************
+COMIENZAN ESTILOS CHAT INTERNO
+*******************************************************************************************************/
+#chatinterno_body {
+    background: linear-gradient(to bottom right,  #414e60, #94a3b1);
+}
+#chatinterno_body .chi_messages, #chatinterno_body .chi_liuser.active {
+    background-color: rgba(50,50,50,.5);
+}
+/*******************************************************************************************************
+TERMINAN ESTILOS CHAT INTERNO
+*******************************************************************************************************/
+
+#whatsapptab .wa-cargar-mas {
+    top: 3px;
+}
+/*******************************************************************************************************
+COMIENZAN ESTILOS DESPACHADOR MONITOREO
+*******************************************************************************************************/
+#monitoreo_despachador .card {
+    margin: 15px 15px 25px 15px;
+}
+#monitoreo_despachador .card-danger {
+    background-color: #fb6868d9;
+}
+#monitoreo_despachador .card-success {
+    background-color: #518e53d9;
+}
+#monitoreo_despachador .card-info {
+    background-color: #7197c7d9;
+}
+#monitoreo_despachador p {
+    margin: 0;
+    font-size: 1.5em;
+}
+#monitoreo_despachador .progress {
+    min-width: 10rem;
+}
+#monitoreo_despachador .card-body {
+    color: #212529FF;
+}
+/*******************************************************************************************************
+TERMINAN ESTILOS DESPACHADOR MONITOREO
+*******************************************************************************************************/

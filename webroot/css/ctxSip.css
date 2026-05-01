@@ -1,0 +1,22 @@
+#sipClient {
+    font-size: 13px;
+    line-height: 1;
+    color: #4B5A6E;
+}
+#sipClient #info {
+    display: flex;
+    padding: 0 10px;
+}
+#sipClient #numDisplay {
+    float: left;
+}
+#sipClient .sipStatus {
+    margin-bottom: 15px;
+    padding: 5px 30px;
+}
+#sipClient i.fa-signal {
+    color: #28a745;
+}
+#sipClient .sipLogClear {
+    cursor: pointer;
+}

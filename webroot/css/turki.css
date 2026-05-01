@@ -1,0 +1,258 @@
+/*
+Azul    : #42A5BA
+Naranja : #DD6630
+Verde   : #B0CD42
+Gris    : #4B5A6E
+Fondo   : #F0EFF2
+*/
+body {
+    background-color: #F0EFF2;
+    color: #4B5A6E;
+}
+
+/* Generales */
+.btn {
+    text-transform: uppercase;
+    border-radius: 20px;
+    padding: 1px 8px;
+    font-size: 14px;
+}
+.btn:hover {
+    opacity: .8;
+}
+.btn-info {
+    background-color: #42A5BA !important;
+    border-color: #42A5BA !important;
+}
+.input-group-text, .form-control, .input-group .btn {
+    border-radius: 20px;
+    padding: 0 10px;
+    height: auto;
+}
+.alert-info {
+    background-color:  rgba(176, 205, 66, .7);
+}
+.pastilla {
+    padding: 10px;
+    margin-bottom: 15px;
+}
+.col-lg {
+    border-right: 1px solid #ced4da;
+}
+
+/* Barra de navegación */
+.navbar {
+    background-color: #4B5A6E !important;
+    color: #FFFFFF;
+}
+.navbar-nav .active>.nav-link {
+    color: #FFFFFF !important;
+    font-weight: bold;
+}
+#btnsalir {
+    background-color: #DD6630;
+    color: #FFFFFF;
+    border: 0;
+    text-transform: uppercase;
+    border-radius: 20px;
+    padding: 5px 12px;
+}
+.nav-tabs .nav-link {
+    border: 0;
+    border-radius: 0;
+    background-color: #e9e9e9;
+    color: #4B5A6E;
+    border-right: 1px solid #d9d9d9;
+}
+.nav-tabs .nav-link.active {
+    background-color: #4B5A6E;
+    color: #FFFFFF;
+}
+.dropdown-menu {
+    background-color: #4b5a6e;
+}
+.dropdown-item {
+    color: #fff;
+}
+
+/* Consola */
+.tab-content {
+    background-color: #FFFFFF;
+    box-shadow: 0 0 10px #AAAAAA;
+    padding: 15px;
+}
+#estadoagente {
+    border: 1px dashed #000000;
+    height: 60px;
+}
+#estadoagente #iniciaBreak, #estadoagente #breakList {
+    height: 30px;
+}
+
+/* Email consola */
+#email.tab-pane {
+    margin: -15px;
+}
+
+/* Dashboard */
+#dashboard .pastilla {
+    background-color: #FFFFFF;
+    border: 0;
+    box-shadow: 0 0 10px #AAAAAA;
+}
+
+.main {
+    margin-top:15px;
+    padding: 15px 30px;
+}
+/* Tablas reportes */
+table td, table th {
+    padding: 3px 5px !important;
+    font-size: small;
+}
+div.table-striped div.table-row:nth-child(odd) {
+    background-color: rgb(255 255 255 / 60%);
+}
+
+/*  ESTILOS DEL TELÉFONO */
+#sidebar {
+    flex: 0 0 250px;
+}
+#sipClient {
+    background-color: #4B5A6E;
+    box-shadow: 0 0 10px #AAAAAA;
+}
+#sipClient .sipStatus {
+    background-color: #FFFFFF;
+}
+#sipClient i.fa-signal {
+    color: #B0CD42 !important;
+}
+#sipClient .btn-primary {
+    background-color: #DD6630;
+    border-color: #DD6630;
+}
+#sipClient #sip-dialpad {
+    width: 90%;
+    margin: 15px auto;
+}
+#sipClient .digit {
+    height: 55px;
+    width: 55px;
+    margin: 0 5px 5px;
+    background-color: #ffffff;
+    color: #4B5A6E;
+    font-size: 24px;
+    border-radius: 50px;
+    line-height: 22px;
+    float: left;
+}
+#sipClient .digit span {
+    display: block;
+    color: #999;
+    font-size: 10px;
+}
+#sipClient .btn-success {
+    background-color: #B0CD42;
+    border-color: #B0CD42;
+    color: #4B5A6E;
+    font-size: 16px;
+    padding: .375rem .75rem;
+}
+#sipClient .btn-success .fa {
+    float: right;
+    font-size: 24px;
+}
+#sipClient .well-sip {
+    background-color: #FFFFFF;
+    padding-top: 10px;
+}
+#sipClient .panel-heading {
+    text-align: center;
+    margin-bottom: 10px;
+}
+#sipClient #iniCS {
+    background-color: #3b81cc;
+    border-color: #3b81cc;
+}
+/*Solo para Gráfico Histo*/
+.de{
+    padding-left: 59px;
+}
+.a{
+    padding-left: 68px;
+}
+.camp{
+    padding-left: 10px;
+}
+.nombre, .apellido{
+    padding: 5px 34px 5px 34px;
+}
+.contacto{
+    padding: 5px 47px 5px 47px;
+}
+.fecha{
+    padding: 5px 14px 5px 14px;
+}
+.obser{
+    padding: 5px 10px 5px 10px;
+}
+/* Estilos despachador */
+.card {
+    background-color: #9db4bc;
+    margin-top: 10px
+}
+.card li {
+    color: #444444;
+}
+.modal-content{
+    background-color: #738496;
+    color: #ffffff;
+}
+#modalancho {
+    max-width: 370px !important;
+}
+.date{
+    width: 14.5em;
+}
+/*******************************************************************************************************
+COMIENZAN ESTILOS CHAT INTERNO
+*******************************************************************************************************/
+#chatinterno_body {
+    background-color: #F0EFF2;
+}
+#chatinterno_body .chi_messages, #chatinterno_body .chi_liuser.active {
+    background-color: #DDDDDD;
+}
+.last_messages {
+    color: #42a4ba;
+    background-color: #dddddd;
+}
+/*******************************************************************************************************
+TERMINAN ESTILOS CHAT INTERNO
+*******************************************************************************************************/
+/*******************************************************************************************************
+COMIENZAN ESTILOS DESPACHADOR MONITOREO
+*******************************************************************************************************/
+#monitoreo_despachador .card {
+    margin: 15px 15px 25px 15px;
+}
+#monitoreo_despachador .card-danger {
+    background-color: #fb6868d9;
+}
+#monitoreo_despachador .card-success {
+    background-color: #518e53d9;
+}
+#monitoreo_despachador .card-info {
+    background-color: #7197c7d9;
+}
+#monitoreo_despachador p {
+    margin: 0;
+    font-size: 1.5em;
+}
+#monitoreo_despachador .progress {
+    min-width: 10rem;
+}
+/*******************************************************************************************************
+TERMINAN ESTILOS DESPACHADOR MONITOREO
+*******************************************************************************************************/

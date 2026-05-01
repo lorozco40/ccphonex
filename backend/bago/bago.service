@@ -1,0 +1,22 @@
+#guardar como /etc/systemd/system/bago.service
+[Unit]
+Description=Background Golang Assertive
+After=mysql.service
+
+[Service]
+ExecStart=/root/bago/bago
+# Required on some systems
+WorkingDirectory=/root/bago/
+Restart=always
+# Restart service after 10 seconds if node service crashes
+RestartSec=10
+# Output to syslog
+StandardOutput=bago
+StandardError=bagoerror
+SyslogIdentifier=bago-assertive
+#User=<alternate user>
+#Group=<alternate group>
+
+[Install]
+#Every system user has access to it
+WantedBy=multi-user.target

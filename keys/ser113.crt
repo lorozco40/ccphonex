@@ -1,0 +1,79 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 55 (0x37)
+    Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C=MX, ST=M\xC3\x83\xC2\xA9xico, L=City, O=Phonex, OU=Phonex, CN=Phonex/emailAddress=gabriel.munoz@phonex.com.mx
+        Validity
+            Not Before: Jan 28 22:58:03 2020 GMT
+            Not After : Jan 27 22:58:03 2030 GMT
+        Subject: C=MX, ST=M\xC3\x83\xC2\xA9xico, L=City, O=Phonex, OU=TI, CN=toyota.phonex.lan/emailAddress=gabriel.munoz@phonex.com.mx
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:c9:2d:9d:86:2d:ce:f1:81:52:2a:99:7f:4f:30:
+                    3f:25:c8:34:e9:51:30:ec:2e:15:36:f3:a8:2b:ea:
+                    c2:35:ca:0c:ef:90:66:6c:1e:de:e0:eb:f8:7f:56:
+                    12:b1:0a:c9:06:62:6f:4f:da:b4:b1:f6:5f:f6:bb:
+                    5f:e2:b4:4b:a2:9b:5d:bd:b6:75:de:7e:7b:89:d3:
+                    86:87:ef:b3:6f:2d:f7:24:b7:87:25:f1:ea:6c:17:
+                    5d:30:77:63:c9:9c:af:34:12:78:26:fa:e2:a7:16:
+                    f4:65:b9:87:e5:37:8c:dc:6a:90:eb:53:3c:9f:7a:
+                    46:80:79:fb:da:56:95:17:41:20:3c:8c:fb:2c:16:
+                    51:6d:8a:dc:ad:71:fd:c9:78:a0:e9:3f:ce:5d:f8:
+                    a1:18:f2:c0:e4:e9:c1:fe:06:58:0f:9c:b5:50:81:
+                    2a:d5:8d:c6:a7:5c:26:80:23:48:62:68:05:eb:4b:
+                    d9:5a:e8:63:e6:38:7f:f2:da:1b:1d:be:bf:be:25:
+                    88:b8:d4:a8:5e:cf:ca:6d:be:d0:6c:d6:db:67:45:
+                    ee:31:17:d7:7c:1f:2c:e0:b7:98:c1:e3:92:4a:de:
+                    85:4b:b8:7d:42:30:54:b9:8e:95:fd:4e:9f:9a:79:
+                    f9:f7:54:18:2c:16:89:b1:d5:9a:1b:92:77:cb:c3:
+                    87:b1
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints: 
+                CA:FALSE
+            X509v3 Key Usage: 
+                Digital Signature, Non Repudiation, Key Encipherment
+            X509v3 Subject Alternative Name: 
+                DNS:toyota.phonex.lan, IP Address:10.10.2.113
+    Signature Algorithm: sha256WithRSAEncryption
+         7a:8a:9a:c7:68:28:c9:e6:33:4f:72:b1:dd:ce:71:f8:f2:9c:
+         03:8f:4d:86:dd:c6:14:b3:a7:d2:d6:d2:7d:ff:80:7a:68:27:
+         0c:7f:41:9e:7b:d6:aa:41:39:93:2e:7e:07:68:5e:06:5d:22:
+         33:7e:63:3d:eb:85:05:11:72:26:af:4a:31:59:74:12:44:51:
+         cf:a5:f3:ad:9f:32:86:72:62:54:67:08:48:69:4e:c6:97:53:
+         24:23:4e:b2:3a:29:10:73:c4:ae:37:76:f7:d7:aa:55:ea:c1:
+         00:be:d4:67:2b:61:aa:31:e8:b4:d1:e7:ae:b9:2f:aa:75:6b:
+         82:e4:b9:ea:66:ab:38:e2:9d:61:7e:fb:23:93:3e:1c:76:cb:
+         3a:27:d1:44:26:fa:f5:af:e2:ff:00:3c:0b:34:1e:43:95:9a:
+         04:06:4f:7e:ee:ca:c6:1b:4c:e9:43:d6:e4:94:bd:d3:3f:7c:
+         b5:c7:e0:35:2f:b7:61:4e:08:c2:3a:d4:47:86:f1:2b:c8:b6:
+         b0:4e:5d:58:e8:3c:a4:45:d9:ba:33:4f:54:4a:a1:91:86:58:
+         a8:37:81:11:d1:a1:00:3e:54:3a:6a:e5:df:9c:22:94:30:e7:
+         91:b2:54:52:dc:1f:4a:c9:2b:c8:74:00:69:dc:4d:68:21:c8:
+         2b:63:33:ea
+-----BEGIN CERTIFICATE-----
+MIID4DCCAsigAwIBAgIBNzANBgkqhkiG9w0BAQsFADCBjzELMAkGA1UEBhMCTVgx
+EjAQBgNVBAgMCU3Dg8KpeGljbzENMAsGA1UEBwwEQ2l0eTEPMA0GA1UECgwGUGhv
+bmV4MQ8wDQYDVQQLDAZQaG9uZXgxDzANBgNVBAMMBlBob25leDEqMCgGCSqGSIb3
+DQEJARYbZ2FicmllbC5tdW5vekBwaG9uZXguY29tLm14MB4XDTIwMDEyODIyNTgw
+M1oXDTMwMDEyNzIyNTgwM1owgZYxCzAJBgNVBAYTAk1YMRIwEAYDVQQIDAlNw4PC
+qXhpY28xDTALBgNVBAcMBENpdHkxDzANBgNVBAoMBlBob25leDELMAkGA1UECwwC
+VEkxGjAYBgNVBAMMEXRveW90YS5waG9uZXgubGFuMSowKAYJKoZIhvcNAQkBFhtn
+YWJyaWVsLm11bm96QHBob25leC5jb20ubXgwggEiMA0GCSqGSIb3DQEBAQUAA4IB
+DwAwggEKAoIBAQDJLZ2GLc7xgVIqmX9PMD8lyDTpUTDsLhU286gr6sI1ygzvkGZs
+Ht7g6/h/VhKxCskGYm9P2rSx9l/2u1/itEuim129tnXefnuJ04aH77NvLfckt4cl
+8epsF10wd2PJnK80Engm+uKnFvRluYflN4zcapDrUzyfekaAefvaVpUXQSA8jPss
+FlFtitytcf3JeKDpP85d+KEY8sDk6cH+BlgPnLVQgSrVjcanXCaAI0hiaAXrS9la
+6GPmOH/y2hsdvr++JYi41Khez8ptvtBs1ttnRe4xF9d8Hyzgt5jB45JK3oVLuH1C
+MFS5jpX9Tp+aefn3VBgsFomx1ZobknfLw4exAgMBAAGjPjA8MAkGA1UdEwQCMAAw
+CwYDVR0PBAQDAgXgMCIGA1UdEQQbMBmCEXRveW90YS5waG9uZXgubGFuhwQKCgJx
+MA0GCSqGSIb3DQEBCwUAA4IBAQB6iprHaCjJ5jNPcrHdznH48pwDj02G3cYUs6fS
+1tJ9/4B6aCcMf0Gee9aqQTmTLn4HaF4GXSIzfmM964UFEXImr0oxWXQSRFHPpfOt
+nzKGcmJUZwhIaU7Gl1MkI06yOikQc8SuN3b316pV6sEAvtRnK2GqMei00eeuuS+q
+dWuC5LnqZqs44p1hfvsjkz4cdss6J9FEJvr1r+L/ADwLNB5DlZoEBk9+7srGG0zp
+Q9bklL3TP3y1x+A1L7dhTgjCOtRHhvEryLawTl1Y6DykRdm6M09USqGRhlioN4ER
+0aEAPlQ6auXfnCKUMOeRslRS3B9KySvIdABp3E1oIcgrYzPq
+-----END CERTIFICATE-----

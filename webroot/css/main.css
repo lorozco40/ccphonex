@@ -1,0 +1,946 @@
+body {
+    padding-top: 60px;
+    padding-bottom: 130px
+}
+h1, h2, h3, h4, h5 {
+    text-align: center;
+}
+pre {
+    background-color: #CCCCCC;
+}
+.em3 {
+    font-size: 3em;
+}
+.em2 {
+    font-size: 2em;
+}
+.listascroll {
+    max-height: 450px;
+    overflow: auto;
+}
+.clickable:not(.active) {
+    cursor: pointer;
+}
+.list-group-item {
+    padding: 8px 5px;
+}
+.navbar {
+    padding: 3px 1rem;
+    z-index: 999;
+}
+.navbar-brand {
+    padding: 0;
+}
+.nav-link {
+    white-space: nowrap;
+}
+.navbar-toggler:not(:disabled):not(.disabled) {
+    position: absolute;
+    right: 5px;
+}
+.popover-header {
+    color:#000;
+}
+/* Estilos submenú desplegable */
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu a::after {
+  transform: rotate(-90deg);
+  position: absolute;
+  right: 6px;
+  top: .8em;
+}
+.dropdown-submenu .dropdown-menu {
+  top: 0;
+  left: 99%;
+  margin-left: .1rem;
+  margin-right: .1rem;
+}
+.btn-spot {
+    line-height: 1em;
+    border-radius: 50em;
+    padding: 0 4px;
+    margin-left: .5em;
+}
+#piedepag {
+    position: fixed;
+    bottom: 0;
+    z-index: 5;
+}
+#spinnerModal {
+    z-index: 1051;
+}
+.ui-autocomplete-loading {
+    background: white url("../assets/img/jplayer.blue.monday.seeking.gif") right center no-repeat;
+}
+#chatinterno_container {
+    font-size: 1.5em;
+    margin-right: 20px;
+    cursor: pointer;
+    display: none;
+}
+
+#msgs {
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1052;
+}
+#toastzone {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    z-index: 1053;
+}
+.toast {
+    width: 300px;
+    color: black;
+}
+
+/* cláses útiles */
+.esverde {
+    color: #14C305;
+}
+.esnaranja{
+    color: #EA750E;
+}
+.esamarillo{
+    color: #FBFF04;
+}
+.esrojo{
+    color: #DA0505;
+}
+.esazulogo {
+    color: #16a7c0;
+    font-size: 16px;
+}
+.esblanco, .esblanco a, .esblanco a:hover, .esblanco a:visited, .esblanco a:active {
+    color: #FFFFFF;
+}
+.esnuevo {
+    color: #FFFFFF;
+    background-color: #FF0000;
+    border-radius: 10px;
+    padding: 0 5px 2px;
+    vertical-align: text-top;
+    font-size: .7em;
+}
+.border-left {
+    border-left: 1px solid gray;
+}
+.form-select {
+    width: 100%;
+    min-height: 170px;
+}
+form#formextapi label {
+    margin: 10px 0 0 0;
+}
+form#formextapi .form-check-input {
+    margin-top: 15px;
+}
+.nav-item .badge {
+    position: absolute;
+    padding:5px;
+    background-color: red;
+    font-size: 0;
+    border-radius: 100px;
+}
+.page-input {
+    position: relative;
+    display: block;
+    padding: .5rem .75rem;
+    margin-left: -1px;
+    line-height: 1.25;
+    color: #000000;
+    background-color: #FFFFFF;
+    border: 1px solid #dee2e6;
+    text-align: center;
+    max-width: 4.2em;
+}
+#btncolapse {
+    position: absolute;
+    z-index: 3;
+    margin: -2px 0 0 8px;
+}
+#btncolapse img {
+    width: 28px;
+}
+#btnsalir {
+    margin-left:15px;
+}
+#sidebar {
+    flex: 0 0 265px;
+    -ms-flex:  0 0 265px;
+}
+#estadoagente {
+    overflow: hidden;
+    position: fixed;
+    top: 50px;
+    right: 15px;
+    width:350px;
+    /* height:70px; */
+    cursor:move;
+    padding: 0;
+    margin: 0;
+    z-index: 5;
+}
+#estadoagente .row {
+    padding: 0;
+    margin: 0
+}
+#estadoagente .col {
+    padding: 5px;
+}
+#estadoagente .fas {
+    cursor: pointer;
+    height: 40px;
+}
+#edoagehide {
+    border-left: 1px dashed #555555;
+}
+#confadmin {
+    display: none;
+    background-color: #b1d03d;
+    position: fixed;
+    top: 54px;
+    left: 256px;
+    cursor:move;
+    padding: 15px;
+    color: #333333;
+}
+#encola {
+    width: 122px;
+    background-color: #9451ec;
+    color: #22ff4a;
+    position: fixed;
+    top: 122px;
+    right: 15px;
+    cursor: move;
+    padding: 5px;
+    z-index: 3;
+}
+.ui-draggable {
+    border: 1px dashed #555555;
+}
+#terminaBreak {
+    display:none;
+}
+#estadotexto {
+    float:left;
+}
+#crono {
+    float:right;
+}
+.reloj {
+	float: left;
+	font-family: Courier,sans-serif;
+}
+.logos{
+    background: transparent;
+    padding: 0px;
+    border: 0px;
+    cursor: pointer;
+}
+#leform .input-group {
+    max-width: 48%;
+}
+#leform .form-group {
+    width: 100%;
+}
+#leform .input-group-text {
+    min-width: 85px;
+}
+form img{
+    max-height: 35px;
+}
+#sla li {
+    font-size: 0.8rem;
+}
+div.noexpande {
+    overflow-x: auto;
+    margin-right: 15px;
+}
+.chart {
+  min-height: 350px;
+  width: 100%;
+}
+#twit li{
+    font-size: 0.8rem;
+}
+
+/* media queries */
+@media (max-width: 767px) {
+    #emcontainer .emselin {
+        max-width: 160px;
+    }
+    .navbar-expand-md>.container {
+        max-width:100%;
+    }
+    .navbar {
+        max-height: 100%;
+        overflow-y: scroll;
+    }
+}
+@media (max-width: 992px) {
+    .listascroll {
+        max-height: 300px;
+        overflow: auto;
+    }
+}
+@media (min-width: 768px) {
+    #emcontainer div.row > #eminfo {
+        min-height: 72px;
+    }
+  }
+
+/*Card amarilla Dasboard*/
+.card-outline-vani {
+    border: 2px solid rgba(255, 204, 1, 1);
+}
+.fa-spinner{
+    color: #afce35;
+}
+.calen{
+    color: #16a7c0;
+}
+.campana{
+    color: #16a7c0;
+}
+
+/* Seccion eventos en consola */
+#consola #agenda {
+    overflow-x: auto;
+    padding: 20px 0;
+}
+#ageform .input-group {
+    max-width: 48%;
+}
+#ageform .input-group-text {
+    min-width: 100px;
+    text-align: right;
+}
+#consola #ageform {
+    margin: 0 20px;
+}
+#ueventos .card {
+    margin:1.5em 1.5em 0;
+    padding: 0;
+}
+#ueventos .card-title {
+    padding: 20px;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+#ueventos .card-body {
+    padding: 0;
+}
+#ueventos .card-content {
+    padding: 20px;
+}
+#ueventos .azul {
+    background-color: #208c39;
+}
+#ueventos .rojo {
+    background-color: #b90300;
+}
+
+.agelink {
+    cursor: pointer;
+}
+
+.tword {
+    color: #1ca1f2;
+}
+#whatsapptab > .row {
+    margin-bottom: 10px;
+}
+#whatsapptab .wa-cargar-mas {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+}
+#whatsapptab .wa-cargar-mas span {
+    background-color: #FFFFFF;
+    padding: 5px 10px;
+}
+#whatsapptab .wamsgs {
+    background-color: #E5DCD4;
+    padding: 15px 30px;
+    border-radius: 5px;
+    height: 300px;
+    overflow-y: auto;
+}
+#whatsapptab .wamsgs .watime {
+    color: gray;
+    width: 100%;
+    text-align: right;
+}
+#whatsapptab #wacontactos, #whatsapptab #wabuscres {
+    overflow-y: auto;
+    max-height: 300px;
+}
+#whatsapptab #wacontactos p, #whatsapptab #wabuscres p {
+    margin-bottom: 0;
+}
+#whatsapptab .wacontact a {
+    display: block;
+    width: 100%;
+}
+#whatsapptab .wacontact a:hover {
+    text-decoration: none;
+}
+#whatsapptab .wacontact:not(.active) a:hover {
+    background-color: #E5DCD4;
+    color:#000000;
+}
+#whatsapptab .wacontact.active {
+    background-color: #E5DCD4;
+}
+#whatsapptab .wacontact.active a {
+    color: #4b0082;
+}
+#whatsapptab .wamsg {
+    padding: 0 7px;
+    border: 1px solid #999999;
+    border-radius: 5px;
+    color: #333333;
+    max-width: 80%;
+    margin-bottom: 8px;
+}
+#whatsapptab .wamsgin {
+    background-color: #FFFFFF;
+}
+#whatsapptab .wamsgout {
+    background-color: #D8E4BC;
+}
+#whatsapptab table {
+    width: 100%;
+}
+#whatsapptab table td {
+    vertical-align: middle;
+}
+#whatsapptab .wapendi {
+    text-align: right;
+    font-weight: bold;
+}
+.bloqui {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.5);
+    margin-top: -15px;
+    z-index: 2;
+    display: none;
+}
+/* Tablas con divs */
+div.table {
+    display: table;
+}
+div.table-row, form.table-row {
+    display: table-row;
+}
+div.table-row:nth-child(even), form.table-row:nth-child(even) {
+    background-color: rgba(200, 200, 200, 0.3);
+}
+div.table-row.totales {
+    background-color: rgba(0,0,0,.6) !important;
+    color: white;
+}
+div.table-row:nth-child(odd), form.table-row:nth-child(odd) {
+    background-color: rgba(240, 240, 240, 0.4);
+}
+div.table-cell {
+    display: table-cell;
+    white-space: nowrap;
+    padding: 3px;
+}
+div.table-cell:nth-child(1) {
+    padding-left:10px;
+}
+div.table-cell:last-child {
+    padding-right:10px;
+}
+div.table-cell.wrapable {
+    white-space: initial;
+}
+div.table-header-group {
+    display: table-header-group;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+div.table-body-group {
+    display: table-header-group;
+}
+input[name="extension"], .shortinput {
+    width: 70px;
+}
+table.table-long {
+    max-height: 500px;
+}
+table.table-long thead {
+    background-color: white;
+    position: sticky;
+    top: -1px;
+}
+table.tbl-exten {
+    line-height: 2em;
+}
+table.tbl-exten td:nth-child(2) {
+    padding-left: 15px;
+    font-weight: bold;
+}
+div.table#agentes div.table-row {
+    color: #4B5A6E;
+}
+div.table#agentes div.table-row:nth-child(even), div.table#agentes form.table-row:nth-child(even) {
+    background-color: #EDEDED;
+}
+div.table#agentes div.table-row:nth-child(odd), div.table#agentes form.table-row:nth-child(odd) {
+    background-color: #F9F9F9;
+}
+
+div.tabla-gin {
+    display: block;
+    overflow-x: auto;
+}
+.datepicker-panel {
+    color: #555555;
+}
+input.datepicker {
+    max-width: 125px !important;
+}
+
+/* Dashboard */
+#dashboard #donut-example, #dashboard #donut-example-out, #dashboard #area-example, #dashboard #area-week, #dashboard #area-example-out {
+    display: block;
+    height: 204px;
+}
+#dashboard div.row {
+    margin-bottom: 20px;
+}
+#dashboard .pastilla {
+    height: 100%;
+}
+#dashboard .text-left {
+    margin-bottom: 2.1rem;
+}
+#dashboard .card {
+    padding: 5px;
+    background-color: transparent;
+    margin-bottom: 5px;
+}
+#dashboard .card i {
+    font-size: 40px;
+}
+#dashboard .card cite {
+    float: right;
+    margin-top: 16px;
+}
+#dashboard .card-outline-total {
+    border: 2px solid rgba(0, 161, 251, 1);
+}
+#dashboard .card-outline-att {
+    border: 2px solid rgba(78,181,102,1);
+}
+#dashboard .card-outline-aba {
+    border: 2px solid rgba(252, 4, 4, 1);
+}
+#dashboard .card-outline-fall {
+    border: 2px solid rgba(53, 53, 53, .7);
+}
+#dashboard .card-outline-vm {
+    border: 2px solid rgba(255,215,0,1);
+}
+#dashboard .dashside {
+    flex: 0 0 340px;
+}
+#dashboard .card span {
+    position: absolute;
+    font-size: 1.7rem;
+    margin: 0 0 0 15px;
+}
+.check {
+    height: 1.5em;
+}
+.online-bullet {
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: block;
+}
+.bullet-offline {
+    background-color: #232323;
+}
+.bullet-online {
+    background-color: #0F0;
+    cursor: pointer;
+}
+/*Logo calenadio en reportes*/
+i.fas.fa-calendar-alt {
+    font-size: 1.2em;
+}
+
+/*Collapsable de busqueda*/
+#collapse {
+    background-color: #007b89;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+#accorManual .nopadding {
+    padding: 0px;
+}
+#accorManual .link3n {
+    color: #138496 !important;
+}
+.parrafo-imagen{
+    padding: 5px 5px 23px 5px;
+    background-color: #303030;
+    color: #ffffff;
+    font-size: 13px;
+    /* text-align: left; */
+}
+.scroll-x{
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+/*******************************************************************************************************
+COMIENZAN ESTILOS CHAT INTERNO
+*******************************************************************************************************/
+#chatinterno_body {
+    display: none;
+    position: absolute;
+    z-index: 6;
+    -webkit-box-shadow: 3px 11px 10px 2px #00000070;
+    box-shadow: 3px 11px 10px 2px #00000070;
+    top: 46px;
+}
+#chatinterno_body .close {
+    padding:1px 0 5px 0;
+}
+#chatinterno_body #chi_userlist {
+    height: 100%;
+    overflow-y: auto;
+    max-height: 375px;
+    list-style-type: none;
+}
+#chatinterno_body #chi_messages_container {
+    height: 300px;
+    margin: 0 0 15px;
+}
+#chatinterno_body .chi_messages {
+    display: none;
+    color: #293440;
+    height: 100%;
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 20px;
+}
+#chatinterno_body #chi_nuevomensaje {
+    margin-bottom: 10px;
+}
+#chatinterno_body .chi_liuser {
+    border:1px solid #c5c2c2;
+    padding: 8px 35px 8px 5px;
+    white-space: nowrap;
+    cursor: pointer;
+}
+#chatinterno_body .user_online_status {
+    border: 0;
+    border-radius: 10px;
+    width: 8px;
+    height: 8px;
+    background-color: transparent;
+    float: left;
+}
+#chatinterno_body .chat_online {
+    background-color: #00FF00;
+}
+#chatinterno_body .bsuper {
+    float: right;
+    font-size: 0.7em;
+    margin: -30px -32px 14px 0px;
+}
+#chatinterno_body .chimsgfecha {
+    font-size: 0.7em;
+}
+#chatinterno_body .chimessage {
+    border: 1px solid #000000;
+    margin-bottom: 5px;
+}
+#chatinterno_body .chi-saliente {
+    border-radius: 10px 10px 0px 10px;
+    background-color: #c1dede;
+}
+#chatinterno_body .chi-entrante {
+    border-radius: 10px 10px 10px 0px;
+    background-color: #fde1ff;
+}
+#chatinterno_body #chi_enviarmensaje {
+    margin: 13px 10px 0 0;
+}
+.newChat {
+    animation: blinking 0.8s infinite;
+    font-weight: bolder;
+    color: #F88;
+}
+.last_messages {
+    width: 100%;
+    position: relative;
+    margin: 0px 0px 15px 0px;
+    cursor: pointer;
+    text-align: right;
+    color: #35a2b8;
+    padding: 2px;
+}
+.last_messages:hover {
+    color: #FFF;
+}
+@keyframes blinking{
+    0%{opacity: 0;}
+    50%{opacity: .5;}
+    100%{opacity: 1;}
+}
+/*******************************************************************************************************
+TERMINAN ESTILOS CHAT INTERNO
+*******************************************************************************************************/
+
+/*******************************************************************************************************
+INICIAN ESTILOS PERMISOS DE CAMPAÑAS DE USUARIOS
+*******************************************************************************************************/
+.camps_viewport {
+    width: 50%;
+    float: right;
+    overflow-x: hidden;
+    overflow-y: auto;
+    margin: 0px;
+    background-color: #FFF;
+    color: #8351a2;
+}
+.draggable {
+    border: 1px dotted silver;
+    padding: 2px;
+    border-radius: 5px;
+    margin: 2px 0px;
+    cursor: pointer;
+    background-color: #F0F0F0;
+}
+.draggable:hover {
+  background-color: #666666;
+  color: #FFF;
+  font-weight: bolder;
+}
+.draganddropcontainer {
+  height: 250px;
+}
+.text-right {
+    text-align: right;
+}
+/*******************************************************************************************************
+Email
+*******************************************************************************************************/
+/* Config cuentas */
+#emctaModal .input-group-prepend .input-group-text {
+    min-width: 110px;
+}
+/* Consola */
+#email.tab-pane {
+    background-image: url('../assets/img/bubles.jpg');
+}
+#email.tab-pane #emcontainer{
+    color: #444444;
+    padding: 15px
+}
+#emcontainer .tab-pane a, #emcontainer .tab-pane a:visited, #emcontainer .tab-pane a:hover {
+    text-decoration: none;
+    color: currentcolor;
+    padding: 5px 0;
+}
+#emcontainer .tab-pane a.btn-primary, #emcontainer .tab-pane a.btn-success {
+    color: white;
+}
+#emcontainer iframe {
+    background-color: white;
+}
+#emcontainer #emreply, #emcontainer .emcontroles .input-group, #emcontainer .emselin {
+    margin-left: 10px
+}
+#emcontainer #emclose {
+    margin-left: auto;
+}
+#emcontainer .tab-content {
+    height: 620px;
+    width: 100%;
+    overflow: auto;
+    background-color: #f0eff2;
+}
+#emcontainer .noemsel, #emcontainer .noemselin {
+    display: none;
+}
+#emcontainer .tab-pane.lista .emlink {
+    border-bottom: 1px dotted gray;
+}
+#emcontainer .tab-pane.lista .emlink:hover:not(.btn-success) {
+    background-color: rgba(0, 0, 0, .1);
+}
+#emcontainer .fa-arrow-alt-circle-right {
+    color: #ca8f00;
+}
+#emcontainer .fa-arrow-alt-circle-left {
+    color: #725ee6;
+}
+.separ {
+    background-color: #b0c4de;
+    color: #212529;
+}
+.separ-table {
+    background-color: #ebba71;
+    color: #212529;
+}
+/* Reportes */
+#idemail li{
+    font-size: 0.8rem;
+}
+#repoform select {
+    max-width: 145px;
+}
+/*******************************************************************************************************
+WHATSAPP MULTILINEA POR USUARIO
+*******************************************************************************************************/
+.wp-element {
+    border: 1px solid silver;
+    padding: 2px;
+    border-radius: 5px;
+    margin: 2px 0px;
+    cursor: pointer;
+}
+.wp-element:hover {
+    background-color: #333333;
+    color: #FFF;
+    font-weight: bolder;
+}
+#wac_nueva {
+    position: absolute;
+    background-color: rgba(50,50,50,.8);
+    color: #F1F1F1;
+    z-index: 10;
+    padding: 15px;
+    border-radius: 0 10px 10px 10px;
+}
+
+/*******************************************************************************************************
+EMOJIKINON PARA WHATSAPP
+*******************************************************************************************************/
+#emojiskinon {
+    display: none;
+    position: absolute;
+    width: 55%;
+    top: 525px;
+    left: 440px;
+    z-index: 2;
+    font-size: 1.5em;
+    background-color: #f5f5f5;
+}
+#emojiskinon span, .emojikinon-btn {
+    cursor: pointer;
+}
+
+/*******************************************************************************************************
+DESPACHADOR
+*******************************************************************************************************/
+.crminfo {
+    background-color: #999999;
+}
+/*******************************************************************************************************
+WHATSAPP INDICADORES
+*******************************************************************************************************/
+.wa-ind-card-pie {
+    width: 480px;
+    height: 360px;
+    padding: 5px;
+}
+/*******************************************************************************************************
+DISEÑO PARA COMPONENTE RATING
+*******************************************************************************************************/
+.rating-component { 
+    border: none;
+    float: left;
+}
+.rating-component > input { display: none; } 
+.rating-component > label:before { 
+    margin: 5px;
+    display: inline-block;
+}
+.rating-component > label { 
+    color: #ddd; 
+    float: right; 
+}
+.rating-component > input:checked ~ label,
+.rating-component:not(:checked) > label:hover,
+.rating-component:not(:checked) > label:hover ~ label { color: #FFD700;  }
+.rating-component > input:checked + label:hover,
+.rating-component > input:checked ~ label:hover,
+.rating-component > label:hover ~ input:checked ~ label,
+.rating-component > input:checked ~ label:hover ~ label { color: #FFED85;  }
+/*******************************************************************************************************
+WHATSAPP EVALUACIÓN
+*******************************************************************************************************/
+.wa-row-session {
+    background-color: #FFF;
+}
+/*******************************************************************************************************
+HELPERS
+*******************************************************************************************************/
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Estilos para el componente de Assertive chat (diferente del chatinterno, cuidado con los ids y clases) */
+#achat-container {
+    height: 400px;
+    color: #333333;
+}
+#achat-sesiones, #achat-msgs {
+    height: 100%;
+    overflow-y: scroll;
+}
+#achat-sesiones {
+    background-color: beige;
+}
+#achat-msgs {
+    background-color: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+    padding: 0 30px;
+}
+.achat-msg-in, .achat-msg-out {
+    border-radius: 5px;
+    max-width: 85%;
+    padding: 10px;
+}
+.achat-msg-out {
+    background-color: #4a6d9b;
+    color: white;
+    align-self: flex-end;
+}
+.achat-msg-in {
+    background-color: #cacaca;
+    align-self: flex-start;
+}
+#achat-form > div:first-child {
+    display: flex;
+}
+#achat-form textarea {
+    width: 100%;
+    resize: none;
+}
+/* Termina estilos para el componente de Assertive chat */

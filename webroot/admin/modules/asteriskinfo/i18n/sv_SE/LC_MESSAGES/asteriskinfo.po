@@ -1,0 +1,234 @@
+# This file is part of FreePBX.
+#
+#    FreePBX is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    FreePBX is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with FreePBX.  If not, see <http://www.gnu.org/licenses/>.
+#
+# FreePBX language for asteriskinfo
+# Copyright (C) 2010 Mikael Carlsson
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: FreePBX asteriskinfo\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-10-29 05:11+0000\n"
+"PO-Revision-Date: 2011-03-19 00:00+0100\n"
+"Last-Translator: Mikael Carlsson <mickecamino@gmail.com>\n"
+"Language-Team: \n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: swedish\n"
+"X-Poedit-Country: SWEDEN\n"
+
+#: Asteriskinfo.class.php:52
+msgid "All"
+msgstr ""
+
+#: asteriskinfo.i18n.php:4 asteriskinfo.i18n.php:10 page.asteriskinfo.php:13
+msgid "Asterisk Info"
+msgstr "Asterisk-info"
+
+#: Modules/Conferences.php:11
+msgid ""
+"Can't connect to Asterisk. Is Asterisk running and started by the correct "
+"user?"
+msgstr ""
+
+#: Modules/Channels.php:40
+msgid "Channel Count"
+msgstr ""
+
+#: page.asteriskinfo.php:16
+msgid "Current Asterisk Version:"
+msgstr ""
+
+#: Modules/Dahdi.php:12
+msgid "Dahdi Channels"
+msgstr ""
+
+#: Modules/Dahdi.php:13
+msgid "Dahdi PRI Spans"
+msgstr ""
+
+#: asteriskinfo.i18n.php:8
+msgid "Provides a snapshot of the current Asterisk configuration"
+msgstr "Denna modul ger en ögonblicksbild av din Asteriskkonfiguration"
+
+#: asteriskinfo.i18n.php:6
+msgid "Reports"
+msgstr ""
+
+#: Modules/Channels.php:40
+msgid "Resource"
+msgstr ""
+
+#: Modules/Channels.php:40
+msgid "Status"
+msgstr ""
+
+#: Modules/Channels.php:40
+msgid "Tech"
+msgstr ""
+
+#: Modules/Channels.php:19
+msgid "The Asterisk REST Interface Module is not loaded in asterisk"
+msgstr ""
+
+#: Modules/Channels.php:24
+msgid "The Asterisk REST Interface is Currently Disabled."
+msgstr ""
+
+#: Modules/Channels.php:32
+msgid ""
+"The Asterisk REST Interface is not able to connect please check "
+"configuration in advanced settings."
+msgstr ""
+
+#: page.asteriskinfo.php:15
+msgid "This page supplies various information about Asterisk"
+msgstr ""
+
+#~ msgid "Active Channel(s)"
+#~ msgstr "Aktiv(a) kanal(er)"
+
+#~ msgid "Active IAX2 Channel(s): "
+#~ msgstr "Aktiv(a) IAX2-kanal(er): "
+
+#~ msgid "Active SIP Channel(s): "
+#~ msgstr "Aktiv(a) SIP-kanal(er): "
+
+#~ msgid "Channels"
+#~ msgstr "Kanaler"
+
+#~ msgid "Conferences"
+#~ msgstr "Konferenser"
+
+#~ msgid "Full Report"
+#~ msgstr "Full rapport"
+
+#~ msgid "Google Talk Channels"
+#~ msgstr "Kanaler för Google Talk"
+
+#~ msgid "IAX Info"
+#~ msgstr "IAX-info"
+
+#~ msgid "IAX2 Channel(s)"
+#~ msgstr "IAX2-kanal(er)"
+
+#~ msgid "IAX2 Peers"
+#~ msgstr "IAX2 peers"
+
+#~ msgid "IAX2 Peers: "
+#~ msgstr "IAX2-peers: "
+
+#~ msgid "IAX2 Registry"
+#~ msgstr "IAX2-registrering(ar)"
+
+#~ msgid "IAX2 Registry: "
+#~ msgstr "IAX2-registreringar: "
+
+#~ msgid "Jabber Connections"
+#~ msgstr "Jabberanslutningar"
+
+#~ msgid "Offline-Unmonitored: "
+#~ msgstr "Off-line oövervakad: "
+
+#~ msgid "Offline: "
+#~ msgstr "Off-line: "
+
+#~ msgid "Online-Unmonitored: "
+#~ msgstr "On-line oövervakad: "
+
+#~ msgid "Online: "
+#~ msgstr "On-line: "
+
+#~ msgid "Peers"
+#~ msgstr "Peers"
+
+#~ msgid "Queues"
+#~ msgstr "Köer"
+
+#~ msgid "Queues Info"
+#~ msgstr "Köinformation"
+
+#~ msgid "Registries"
+#~ msgstr "Registreringar"
+
+#~ msgid "Sip Peers: "
+#~ msgstr "SIP-peers: "
+
+#~ msgid "Sip Registry: "
+#~ msgstr "SIP-registreringar: "
+
+#~ msgid "Subscribe/Notify"
+#~ msgstr "Prenumerationer/Noteringar"
+
+#~ msgid "Subscriptions"
+#~ msgstr "Prenumerationer"
+
+#~ msgid "Summary"
+#~ msgstr "Sammanfattning"
+
+#~ msgid ""
+#~ "The module was unable to connect to the Asterisk manager.<br>Make sure "
+#~ "Asterisk is running and your manager.conf settings are proper.<br><br>"
+#~ msgstr ""
+#~ "Modulen kunde inte koppla upp sig mot Asterisk hanterare.<br>Kontrollera "
+#~ "att Asterisk körs och att dina inställningar i manager.conf är riktiga."
+#~ "<br><br>"
+
+#~ msgid "Unmonitored: "
+#~ msgstr "Oövervakad: "
+
+#~ msgid "Uptime"
+#~ msgstr "Upptid"
+
+#~ msgid "Uptime: "
+#~ msgstr "Upptid: "
+
+#~ msgid "Voicemail Users"
+#~ msgstr "Röstbrevlådor"
+
+#~ msgid "DAHDi driver info"
+#~ msgstr "Dirvrutinsinforation för DAHDi"
+
+#~ msgid "Zaptel driver info"
+#~ msgstr "Zaptel drivrutinsinformation"
+
+#~ msgid "ASTERISK MANAGER ERROR"
+#~ msgstr "FEL PÅ ASTERISK HANTERARE"
+
+#~ msgid "Asterisk (Ver. "
+#~ msgstr "Asterisk (Ver."
+
+#~ msgid "Conference Info"
+#~ msgstr "Konferensinformation"
+
+#~ msgid "Refresh"
+#~ msgstr "Uppdatera"
+
+#~ msgid "Sip Channel(s)"
+#~ msgstr "SIP-kanal(er)"
+
+#~ msgid "Sip Info"
+#~ msgstr "SIP-info"
+
+#~ msgid "Sip Peers"
+#~ msgstr "SIP peers"
+
+#~ msgid "Sip Registry"
+#~ msgstr "SIP-registrering(ar)"
+
+#~ msgid "System Administration"
+#~ msgstr "Systemadministration"

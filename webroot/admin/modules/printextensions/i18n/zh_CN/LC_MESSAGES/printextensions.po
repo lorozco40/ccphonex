@@ -1,0 +1,76 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: FreePBX 2.5 Chinese Translation\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-01-31 14:50+0530\n"
+"PO-Revision-Date: 2009-02-01 12:49+0800\n"
+"Last-Translator: 周征晟 <zhougongjizhe@163.com>\n"
+"Language-Team: EdwardBadBoy <zhougongjizhe@163.com>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Chinese\n"
+"X-Poedit-Country: CHINA\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#: printextensions.i18n.php:8
+msgid ""
+"Creates a printable list of extension numbers used throughout the system "
+"from all modules that provide an internal callable number"
+msgstr ""
+
+#: page.printextensions.php:49
+msgid "Download PDF"
+msgstr ""
+
+#: Printextensions.class.php:33
+msgid "Extension"
+msgstr "分机号"
+
+#: page.printextensions.php:6
+msgid "Extensions"
+msgstr ""
+
+#: page.printextensions.php:56
+msgid "Print"
+msgstr ""
+
+#: printextensions.i18n.php:4 printextensions.i18n.php:10
+msgid "Print Extensions"
+msgstr "分机一览"
+
+#: printextensions.i18n.php:6
+msgid "Reports"
+msgstr "报表"
+
+#: Printextensions.class.php:32
+msgid "User"
+msgstr ""
+
+#: Printextensions.class.php:30
+msgid "Users"
+msgstr ""
+
+#~ msgid "FreePBX Extension Layout"
+#~ msgstr "PBX分机列表"
+
+#~ msgid "No Matches for the Requested Search"
+#~ msgstr "无查询记录"
+
+#~ msgid "Printer Friendly Page"
+#~ msgstr "显示可打印页面"
+
+#~ msgid "Search Exact Exten"
+#~ msgstr "准确查询分机"
+
+#~ msgid "Search:"
+#~ msgstr "查询"
+
+#~ msgid "Name"
+#~ msgstr "名称"

@@ -1,0 +1,66 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: FreePBX printextensions\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-01-31 14:50+0530\n"
+"PO-Revision-Date: 2008-10-12 15:07+0100\n"
+"Last-Translator: Mikael Carlsson <mickecamino@gmail.com>\n"
+"Language-Team: \n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Swedish\n"
+"X-Poedit-Country: SWEDEN\n"
+
+#: printextensions.i18n.php:8
+msgid ""
+"Creates a printable list of extension numbers used throughout the system "
+"from all modules that provide an internal callable number"
+msgstr ""
+
+#: page.printextensions.php:49
+msgid "Download PDF"
+msgstr ""
+
+#: Printextensions.class.php:33
+msgid "Extension"
+msgstr "Anknytning/funktionskod"
+
+#: page.printextensions.php:6
+msgid "Extensions"
+msgstr ""
+
+#: page.printextensions.php:56
+msgid "Print"
+msgstr ""
+
+#: printextensions.i18n.php:4 printextensions.i18n.php:10
+msgid "Print Extensions"
+msgstr "Skriv ut anknytningar"
+
+#: printextensions.i18n.php:6
+msgid "Reports"
+msgstr ""
+
+#: Printextensions.class.php:32
+msgid "User"
+msgstr ""
+
+#: Printextensions.class.php:30
+msgid "Users"
+msgstr ""
+
+#~ msgid "FreePBX Extension Layout"
+#~ msgstr "Anknytningar och funktionskoder"
+
+#~ msgid "Printer Friendly Page"
+#~ msgstr "Utskriftsvänlig sida"
+
+#~ msgid "Name"
+#~ msgstr "Namn"

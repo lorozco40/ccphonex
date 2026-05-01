@@ -1,0 +1,1605 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Crm_model extends CI_Model
+{
+
+    private $dtfor;
+
+    public function __construct() {
+        parent::__construct();
+        $sispar      = $this->datos_model->getParams("sistema");
+        $this->dtfor = $sispar->FormatoFechaMysql;
+    }
+
+    public function crear(array $data = null) {
+        $this->load->model("form_model");
+        $fid = $this->form_model->create($data, 1);
+        if ($fid && $this->addCrmFields($fid)) {
+            redirect('form/campos/'.$fid);
+        } else {
+            $this->session->set_flashdata('errormsg', 'No se crea el CRM');
+            redirect('crm/admin');
+        }
+    }
+
+    function croninformar() {
+        $query = $this->db->query("SELECT * FROM `ticket_eventos` WHERE `nivel` = 0");
+        foreach ($query->result() as $row) {
+            $this->informar(['fid'=>$row->id_grupo, 'id'=>$row->id_ticket, 'pid'=>0]);
+        }
+        $this->db->query("UPDATE `ticket_eventos` SET `nivel` = 1 WHERE `nivel` = 0");
+
+        return true;
+    }
+
+    public function addCrmFields(int $fid = null) {
+        if (empty($fid)) return false;
+        $this->load->model("form_model");
+        $data = array('id_form'=>$fid, 'type'=>'textarea', 'name'=>'Detalle', 'required'=>1, 'base'=>1, 'api'=>1);
+        $this->form_model->createc($data);
+        $data = array('id_form'=>$fid, 'type'=>'dropdown', 'len'=>32, 'name'=>'Tipo', 'order'=>1, 'base'=>1, 'api'=>1, 'values'=>'Evento,Incidente,Requerimiento,Queja');
+        $this->form_model->createc($data);
+        $data = array('id_form'=>$fid, 'type'=>'dropdown', 'len'=>32, 'name'=>'Prioridad', 'order'=>2, 'base'=>1, 'api'=>1, 'values'=>'Media,Baja,Alta');
+        $this->form_model->createc($data);
+        $data = array('id_form'=>$fid, 'type'=>'datetime', 'name'=>'Cierre', 'editable'=>0, 'base'=>1);
+        $this->form_model->createc($data);
+        $data = array('id_form'=>$fid, 'type'=>'dropdown', 'name'=>'Cliente', 'slug'=>'id_cliente', 'values'=>'client', 'required'=>1, 'base'=>1, 'api'=>1);
+        $this->form_model->createc($data);
+        $data = array('id_form'=>$fid, 'type'=>'dropdown', 'name'=>'Asignar a', 'values'=>'user', 'base'=>1, 'api'=>1);
+        $this->form_model->createc($data);
+        $data = array('id_form'=>$fid, 'type'=>'text', 'name'=>'Informar', 'base'=>1, 'api'=>1);
+        $this->form_model->createc($data);
+        $data = array('id_form'=>$fid, 'type'=>'text', 'len'=>32, 'name'=>'Estatus', 'editable'=>0, 'base'=>1);
+        $this->form_model->createc($data);
+        $data = array('id_form'=>$fid, 'type'=>'text', 'name'=>'Semáforo', 'editable'=>0, 'base'=>1, 'front'=>0);
+        $this->form_model->createc($data);
+
+        return $this->crmtable($fid);
+    }
+
+    public function crmtable($idForm) {
+        if (!is_numeric($idForm)) return false;
+        // ToDo: Crear ésta tabla sólo si es necesario, validado por usuario administrador
+        $this->db->query("CREATE TABLE `formd_".$idForm."_file` (
+            `id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            `id_formd` int(11) NOT NULL,
+            `id_user` int(11) NOT NULL,
+            `fecha` datetime NOT NULL,
+            `name` text NOT NULL,
+            `filename` varchar(50) NOT NULL,
+            FOREIGN KEY (`id_formd`) REFERENCES `formd_".$idForm."` (`id`),
+            FOREIGN KEY (`id_user`) REFERENCES `user` (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        // ToDo: Crear ésta tabla sólo si es necesario, validado por usuario administrador
+        $this->db->query("CREATE TABLE `formd_".$idForm."_cats` (
+            `id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            `field` varchar(16) NOT NULL,
+            `parent` varchar(16) NOT NULL,
+            `eti` varchar(64) NOT NULL,
+            `val` varchar(254) NOT NULL,
+            `seq` tinyint(2) NOT NULL,
+            UNIQUE KEY `field_val` (`field`,`val`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $this->db->query("UPDATE `form` set `crm`=1 where id = ?", [$idForm]);
+        return $this->db->query("CREATE TABLE `formd_".$idForm."_crm` (
+            `id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            `id_formd` int(11) NOT NULL,
+            `id_user` int(11) NOT NULL,
+            `uniqueid` varchar(64) NOT NULL,
+            `linkedid` varchar(64) NOT NULL,
+            `fecha` datetime NOT NULL,
+            `comentario` text NOT NULL,
+            `estatus` varchar(50) NOT NULL,
+            FOREIGN KEY (`id_formd`) REFERENCES `formd_".$idForm."` (`id`),
+            FOREIGN KEY (`id_user`) REFERENCES `user` (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    }
+
+    public function guardar() {
+        $req = $this->input->post();
+        $json = json_decode($req['jsonData']);
+        $data = [];
+        $now  = date("Y-m-d H:i:s"); 
+        // Datos del Ticket
+        foreach ($json->ticket as $val) {
+            $data[$val->name] = $val->value;
+        }
+        // Array de los campos que fueron actualizados de las tablas relacionales
+        $tbr_update = [];
+        if (isset($json->tbr->to_update)) {
+            foreach ($json->tbr->to_update as $tbrid => $row) {
+                $tbr_update[$tbrid] = [];
+                foreach ($row as $reg) {
+                    $tbr_update[$tbrid][] = $reg;
+                }
+            }
+        }
+        // Datos apilables tabla relacionada
+        $tbr = [];
+        if (isset($json->tbr->data)) {
+            foreach ($json->tbr->data as $tbrid => $row) {
+                $obj_tbr_update = isset($tbr_update[$tbrid]) ? $tbr_update[$tbrid] : []; 
+                $props_tbr = $this->get_props_tbr($tbrid);
+                $tbr[$tbrid] = [];
+                foreach ($row as $index=>$reg) {
+                    $addreg = [];
+                    foreach ($reg as $campo) {
+                        $prop = ( isset($props_tbr[$campo->name]) ) ? $props_tbr[$campo->name] : null;
+                        if( isset($prop->type) &&  $prop->type == 'datetime_pdf') {
+                            //Este campo no puede ser manipulado por el usuario
+                        } else if( isset($prop->type) && $prop->type == 'datetime_pdf_update' ) {
+                            //De este mismo renglon en curso, obtendremos el name y value del campo datetime_pdf
+                            $aux_slug   = str_replace('_update', '', $prop->slug);
+                            $indice     = array_search($aux_slug, array_column($row[$index], 'name'));
+                            $indice_id  = array_search('id', array_column($row[$index], 'name'));
+                            if( $indice !== false ) {
+                                if( isset($row[$index][$indice]->value) && $row[$index][$indice]->value != NULL ) {
+                                    // Ya hay una fecha de envio de pdf, siginifica que si ese campo se modifica, debera ser actualizado
+                                    if( $campo->value == NULL ) {
+                                        //Validamos si el campo fue modificado
+                                        if( in_array($row[$index][$indice_id]->value, $obj_tbr_update) ) {
+                                            $addreg[$campo->name] = $now;
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            $addreg[$campo->name] = $campo->value;
+                        }
+                    }
+                    $tbr[$tbrid][] = $addreg;
+                }
+            }
+        }
+        // Datos apilables a borrar de tablas relacionadas
+        $tbrdel = [];
+        if (isset($json->tbr->to_delete)) {
+            foreach ($json->tbr->to_delete as $tbrid => $row) {
+                $tbrdel[$tbrid] = [];
+                foreach ($row as $reg) {
+                    $tbrdel[$tbrid][] = $reg;
+                }
+            }
+        }
+        $ret = ['status' => 'danger', 'msg' => 'CRM incorrecto'];
+        if (!empty($data['id_form'])) {
+            $resTicket = $this->guardaTicket($data);
+            if ($resTicket['status'] == 'success') {
+                if (!empty($tbr) || !empty($tbrdel)) {
+                    $tabstbr = $this->tabsTbr($resTicket['form'], $resTicket['campos']);
+                }
+                if (!empty($tbr)) {
+                    $id_ticket = ( isset($resTicket['id'] ) ? $resTicket['id'] : $data['id']);
+                    $this->guardaTbr($tabstbr, $tbr, $id_ticket);
+                }
+                if (!empty($tbrdel)) {
+                    $this->borraTbr($tabstbr, $tbrdel);
+                }
+                if(isset($resTicket['proceso']) && $resTicket['proceso'] == 'insert') {
+                    $pid    = (empty($data['pl4n71ll4'])) ? 0 : $data['pl4n71ll4'];
+                    $infrmr = $this->informar(['fid'=>$data['id_form'], 'id'=>$resTicket['id'], 'pid'=>$pid, 'proceso'=>$resTicket['proceso']]);
+                    $resTicket['infrmr'] = $infrmr;
+                }
+            }
+            unset($resTicket['form']);
+            unset($resTicket['campos']);
+            $ret = $resTicket;
+        }
+
+        return $ret;
+    }
+
+    // Obtiene la lista de los campos y sus propiedades de una TBR con el slug como indice
+    public function get_props_tbr($tbrid) {
+        $rows = $this->db->query('SELECT *
+        FROM form_fields_tbr
+        WHERE id_form_fields = ?
+        ORDER BY `order` ASC, id ASC', [$tbrid])->result();
+        $resp = [];
+        foreach( $rows as $row ) {
+            $resp[$row->slug] = $row;
+        }
+
+        return $resp;
+    }
+
+    // Obtiene el nombre de las tables TBRs
+    private function tabsTbr($crm, $campos) {
+        $tablas = [];
+        foreach ($campos as $campo) {
+            if ($campo->descen == 'ttbbrr') {
+                $tablas[$campo->id] = 'formd_' . $crm->id . '_tb' . $campo->depend;
+            }
+        }
+
+        return $tablas;
+    }
+
+    private function guardaTicket($data) {
+        $query   = $this->db->query("SELECT * from form where id='".$data['id_form']."'");
+        $form    = $query->row();
+        $query   = $this->db->query("SELECT * from form_fields where id_form='".$data['id_form']."'");
+        $campos  = $query->result();
+        $ret     = ["form"=>$form,"campos"=>$campos];
+        $pret    = ['status' => 'error', 'msg' => 'Sin datos de CRM'];
+        $id_user = $this->session->userdata('uid');
+        if (empty($data['id']) || $data['id'] == '-') {
+            // Ticket nuevo
+            $qcam = "`id_user`, `uniqueid`, `estatus`, `apertura`, `cierre`";
+            $qdef = "?, ?, 'Abierto', now(), NULL";
+            $qval = array($id_user, $data['uniqueid']);
+            $noaddbyname = ['apertura','cierre','estatus','semaforo','id_user','uniqueid'];
+            $noaddbytype = ['separador','tabla'];
+            foreach ($campos as $campo) {
+                if (!in_array($campo->slug, $noaddbyname) && !in_array($campo->type, $noaddbytype)) {
+                    $qcam .= ", `".$campo->slug."`";
+                    if ($campo->type == 'checkbox') {
+                        $qdef .= isset($data[$campo->slug]) ? ",'1'" : ",'0'";
+                    } elseif ($campo->slug == 'creacion' || $campo->slug == 'fecha_contacto') {
+                        $qdef .= ",now()";
+                    } elseif ($campo->type == 'datetime') {
+                        $qdef .= (!empty($data[$campo->slug])) ? ",'".$data[$campo->slug]."'" : ",NULL";
+                    } else {
+                        $qdef .= ",?";
+                        $qval[] = (isset($data[$campo->slug])) ? $data[$campo->slug] : "";
+                    }
+                }
+            }
+            if ($this->db->query("INSERT into `formd_".$data['id_form']."` ($qcam) values ($qdef)", $qval)) {
+                $id = $this->db->insert_id();
+                if ($this->db->table_exists('formd_'.$data['id_form']."_ccold")) {
+                    $this->db->query("INSERT into `formd_".$data['id_form']."_ccold` select * from `formd_".$data['id_form']."` where id = ?", [$id]);
+                }
+                $cali = $this->db->query("INSERT into `formd_".$data['id_form']."_crm` (`id_formd`, `id_user`, `uniqueid`, `fecha`, `comentario`, `estatus`)
+                    values ('$id','$id_user','".$data['uniqueid']."',now(), 'Ticket creado', 'Abierto')"
+                );
+                if ($cali) {
+                    $ticket = $this->db->query("SELECT t.*, concat(a.name, ' ', a.last) AS 'r_agente',
+                        concat(s.name, ' ', s.last) AS 'r_asignado', concat(c.name, ' ', c.last) AS 'r_cliente'
+                        FROM formd_" . $data['id_form'] . " t
+                        LEFT JOIN user a ON t.id_user = a.id
+                        LEFT JOIN user s ON t.asignar_a = s.id
+                        LEFT JOIN client c ON t.id_cliente = c.id
+                        WHERE t.id = ?", [$id])->row();
+                    $query = $this->db->query("SELECT * FROM `form_api` WHERE `id_form` = ? AND on_when = 1 AND active = 1", [$data['id_form']]);
+                    foreach ($query->result() as $accion) {
+                        // on_when: 0 show, 1 open, 2 upd, 3 close, 4 human, 5 file, 6 img
+                        $this->consumeApiEndpoint($accion, (object)$data, $ticket);
+                    }
+                }
+                $crmhisto = $this->getCrmHisto($data['id_form'], $id);
+                // status ok/error, tipo nuevo/actu,
+                $pret = array(
+                    'status'  => 'success',
+                    'proceso' => 'insert',
+                    'histo'   => $crmhisto,
+                    'files'   => '',
+                    'id'      => $id,
+                    'tipo'    => 'nuevo',
+                    'now'     => date("Y-m-d h:i:s"),
+                    'msg'     => 'Registro creado con el id '.$id,
+                );
+            } else {
+                $pret = array(
+                    'status' => 'error',
+                    'msg'    => 'Error al guardar en la base de datos.'
+                );
+            }
+        } else {
+            // Actualizar ticket
+            $loset = '';
+            $values = [];
+            $noaddbyname = ["id", "apertura", "cierre", "estatus", "semaforo", "id_user", "uniqueid", "linkedid"];
+            $noaddbytype = ['separador','tabla','datetime_pdf','datetime_pdf_update','boton'];
+
+            foreach ($campos as $campo) {
+                // Omitir slugs no modificables
+                if (!in_array($campo->slug, $noaddbyname) && !in_array($campo->type, $noaddbytype)) {
+                    if ((isset($data[$campo->slug]) || $campo->type == 'checkbox') && $campo->editable == 1) {
+                        $loset .= "`$campo->slug`= ?,";
+                        if ($campo->type == 'checkbox') {
+                            $values[] = (isset($data[$campo->slug])) ? 1 : 0;
+                        } elseif ($campo->type == 'datetime') {
+                            $values[] = (!empty($data[$campo->slug])) ? $data[$campo->slug] : NULL;
+                        } else {
+                            $values[] = $data[$campo->slug];
+                        }
+                    }
+                }
+            }
+            $loset = rtrim($loset, ", ");
+            $sql = "UPDATE `formd_".$data['id_form']."` SET $loset WHERE id = '".$data['id']."'";
+            $upd = $this->db->query($sql, $values);
+            if ($upd) {
+                $pret = array(
+                    'status'  => 'success',
+                    'proceso' => 'update',
+                    'id'      => $data['id'],
+                    'msg'     => 'Datos de Ticket actualizados.'
+                );
+            } else {
+                $pret = array(
+                    'status' => 'error',
+                    'msg'    => 'Datos inconsistentes en el ticket.'
+                );
+            }
+        }
+
+        return array_merge($ret, $pret);
+    }
+
+    private function guardaTbr($tablas, $tbr, $tid) {
+        foreach ($tbr as $key => $tabregs) {
+            $inserts = [];
+            foreach ($tabregs as $reg) {
+                if($reg['id']==0) {
+                    $reg['id_formd'] = $tid;
+                    $inserts[] = $reg;
+                } else {
+                    $id = $reg['id'];
+                    unset($reg['id']);
+                    $this->db->update($tablas[$key], $reg, "id = $id");
+                }
+            }
+            if (!empty($inserts)){
+                $this->db->insert_batch($tablas[$key], $inserts);
+            }
+        }
+
+        return true;
+    }
+
+    private function borraTbr($tablas, $tbrdel) {
+        foreach ($tbrdel as $key => $tabregs) {
+            $delids = [];
+            foreach ($tabregs as $reg) {
+                $delids[] = $reg;
+            }
+            if (!empty($delids)){
+                $this->db->where_in('id', $delids);
+                $this->db->delete($tablas[$key]);
+            }
+        }
+
+        return true;
+    }
+
+    public function savesem() {
+        $data = $this->input->post();
+        $retipo = 'error';
+        $ret    = 'Información incorrecta o incompleta';
+        if (empty($data['fid'])) {
+            return ['tipo'=>$retipo, 'msg'=>$ret];
+        }
+        $campaign_hours = ($data['campaign_hours'] == 1) ? 1 : 0;
+        $active = (empty($data['active'])) ? 0 : 1;
+        $notifyWarn = (empty($data['notify_warn'])) ? 0 : 1;
+        $notifyRed = (empty($data['notify_red'])) ? 0 : 1;
+        $notifyStep = (empty($data['notify_step'])) ? 0 : 1;
+        $notifyStepAfterRed = (empty($data['notify_step_after_red'])) ? 0 : 1;
+        $save   = false;
+        if (is_numeric($data['time_to_warn']) && is_numeric($data['time_to_red']) && is_numeric($data['time_to_step']) &&
+            !empty($data['msg_warn']) && !empty($data['msg_red']) && !empty($data['msg_step'])) {
+            $save = true;
+        }
+        if ($save) {
+            $query = $this->db->query("UPDATE crm_light set time_to_red = ?, msg_red = ?, notify_red = ?,
+                time_to_warn = ?, msg_warn = ?, notify_warn = ?,
+                time_to_step = ?, msg_step = ?, notify_step = ?, notify_step_after_red = ?, campaign_hours = ?,
+                active = ? WHERE id_form = ?", [$data['time_to_red'], $data['msg_red'], $notifyRed,
+                $data['time_to_warn'], $data['msg_warn'], $notifyWarn,
+                $data['time_to_step'], $data['msg_step'], $notifyStep,
+                $notifyStepAfterRed, $campaign_hours, $active, $data['fid']]);
+            if ($query) {
+                $retipo = 'msg';
+                $ret = 'Datos de semáforo actualizados';
+            } else {
+                $ret = $this->db->error();
+            }
+        }
+
+        return ['tipo'=>$retipo, 'msg'=>$ret];
+    }
+
+    public function guardarcali() {
+        $data  = $this->input->post();
+        $pid   = (empty($data['pl4n71ll4'])) ? 0 : $data['pl4n71ll4'];
+        $form  = $this->db->query("SELECT * from form where id = ?", [$data['id_form']])->row();
+        $query = $this->db->query("SELECT * FROM `formd_".$data['id_form']."` WHERE `id` = ?", [$data['id']]);
+        $toact = $query->row();
+        if (isset($toact->estatus) && $toact->estatus == 'Cerrado') {
+            return array('status' => 'danger', 'msg' => 'Estatus cerrado, reabrir para continuar.');
+        }
+        $uid   = $this->session->userdata('uid');
+        $uname = trim($this->udata['name'].' '.$this->udata['last']);
+        if (!empty($data['coment']) && !empty($data['status']) && !empty($data['id']) && !empty($data['id_form']) ) {
+            $this->db->query("INSERT INTO `formd_" . $data['id_form'] . "_crm`
+                (`id_formd`, `id_user`, `uniqueid`, `fecha`, `comentario`, `estatus`) VALUES
+                (?, '$uid', ?, now(), ?, ?)", [$data['id'], $data['uniqueid'], $data['coment'], $data['status']]);
+            if ($this->db->affected_rows() == 1) {
+                $ticket = $this->db->query("SELECT * FROM `formd_".$data['id_form']."` WHERE `id` = ?", [$data['id']])->row();
+                //Si el ticket se cierra, entonces se realizarán las operaciones al cierre del ticket
+                $msg_complemento = $masupds = '';
+                if ($data['status'] == 'Cerrado') {
+                    $masupds = ', cierre=now()';
+                    if ($this->db->field_exists('termino','formd_'.$data['id_form']) && $ticket->termino === null) {
+                        // Todo: Quitar esta cosa y pasarla a las acciones al cierre
+                        $masupds .= ', termino=now()';
+                    }
+                    $this->load->model('form_model');
+                    $res = $this->form_model->oct_apply($data['id_form'], $data['id']);
+                    if(!$res['success']) $msg_complemento = " Pero no se pudieron ejecutar las operaciones al cierre del formulario.";
+                }
+                $actualizado = $this->db->query("UPDATE formd_$data[id_form] set estatus = ? $masupds WHERE id = ?", [$data['status'], $data['id']]);
+                if($actualizado) {
+                    $ticket = $this->db->query("SELECT * FROM `formd_".$data['id_form']."` WHERE `id` = ?", [$data['id']])->row();
+                    $query = $this->db->query("SELECT * FROM `form_api` WHERE `id_form` = ? AND active = 1", [$data['id_form']]);
+                    foreach ($query->result() as $accion) {
+                        // on_when: 0 show, 1 open, 2 upd, 3 close, 4 human
+                        if ($accion->on_when == 2 && $data['status'] != 'Cerrado' && $data['status'] != 'Abierto') {
+                            $this->onUpdAction($accion, (object)$data, $ticket);
+                        } else if ($accion->on_when == 3 && $data['status'] == 'Cerrado') {
+                            $this->onCloseAction($accion, $data, $ticket);
+                        }
+                    }
+                    // Si se actualiza correctamente, se envía el email de notificación
+                    $inform = $this->informar(['fid'=>$data['id_form'], 'id'=>$data['id'], 'pid'=>$pid]);
+                    return array(
+                        'status' => 'success',
+                        'msg' => 'Procesado el Ticket <trong>'.$data['id'].
+                        '</strong>, con estatus '.$data['status'].'.'.$msg_complemento,
+                        'infrmr' => $inform);
+                } else {
+                    $data = ['status' => 'danger', 'msg' => 'Algo ocurrió al actualizar el estatus del formulario.'];
+                }
+            } else {
+                $data = ['status' => 'danger', 'msg' => 'Algo ocurrió al guardar el formulario en crm.'];
+            }
+        } else {
+            $data = ['status' => 'danger', 'msg' => 'Información incompleta.'];
+        }
+
+        return $data;
+    }
+
+    public function guardararchivo() {
+        $data = $this->input->post();
+        $ano  = date("Y");
+        $mes  = date("m");
+        $name = $_FILES['archivo']['name'];
+        $extn = explode('.', $name);
+        $fnam = implode(array_slice($extn,0,-1));
+        $extn = slugify(end($extn));
+        $name = slugify($fnam).".".$extn;
+        $uid  = $this->session->userdata('uid');
+        $unam = trim($this->udata['name'].' '.$this->udata['last']);
+        if (!file_exists(FCPATH.'../upload/form/'.$data['id_form'].'/'.$ano.'/'.$mes)) {
+            mkdir(FCPATH.'../upload/form/'.$data['id_form'].'/'.$ano.'/'.$mes, 0755, true);
+        }
+
+        $data['upload_path']   = FCPATH.'../upload/form/'.$data['id_form'].'/'.$ano.'/'.$mes.'/';
+        $data['allowed_types'] = "*";
+        $data['file_name']     = $data['id_form']."_".$ano."_".$mes."_".md5(uniqid(rand(), true)).'.'.$extn;
+        $data['file']          = $data['upload_path'] . $data['file_name'];
+
+        $this->load->library('upload', $data);
+        if (!$this->upload->do_upload('archivo')) {
+            $res = array("status"=>"error", "msg"=>$this->upload->display_errors());
+        } else {
+            if (!$this->db->query('INSERT INTO formd_'.$data['id_form'].'_file
+                (id_formd,id_user,fecha,name,filename) values (?,?,now(),?,?)',
+                array($data['id'], $uid, $name, $data['file_name']))) {
+                return array("status"=>"error", "msg"=>$this->db->error()['message']);
+            };
+                $fila = "<div class='table-row'>
+                    <div class='table-cell'>".date(str_replace('%', '', $this->dtfor))."</div>
+                    <div class='table-cell'>".$unam."</div>
+                    <div class='table-cell'><a target='_blank' href='".
+                    site_url('archivo?name='.$data['file_name'].'&amp;type=form')."'>".$name."</a></div>
+                </div>";
+            $res = array("status"=>"ok","msg"=>"Archivo subido con éxito","fila"=>$fila);
+            $query = $this->db->query("SELECT * FROM `form_api` WHERE `id_form` = ? AND on_when > 4 AND active = 1", [$data['id_form']]);
+            $hayepimg = false; // hay endpoint de imagen
+            foreach ($query->result() as $accion) {
+                // on_when: 0 show, 1 open, 2 upd, 3 close, 4 human, 5 file, 6 img
+                if ($accion->on_when == 6) {
+                    $hayepimg = true;
+                }
+            }
+            foreach ($query->result() as $accion) {
+                if ($hayepimg) {
+                    if (($accion->on_when == 6 && in_array($extn, ['jpg','jpeg','png','gif','bmp','svg','webp'])) ||
+                        ($accion->on_when == 5 && !in_array($extn, ['jpg','jpeg','png','gif','bmp','svg','webp']))) {
+                        $this->consumeApiEndpoint($accion, (object)$data, $ticket);
+                    }
+                } else {
+                    $this->consumeApiEndpoint($accion, (object)$data, $ticket);
+                }
+            }
+        }
+
+        return $res;
+    }
+
+    public function traerforms($data = false) {
+        $filtrocid = (!empty($data['cid'])) ? "and `id_campaign` in (".$data['cid'].")" : "";
+        $query = $this->db->query("SELECT `id`, `name`, `id_campaign`
+            from `form` where `active`=1 $filtrocid order by id DESC");
+        $res = $query->result();
+        $data = [];
+        foreach ($res as $key => $row) {
+            if($this->db->table_exists('formd_'.$row->id.'_crm')) $data[] = $row;
+        }
+
+        return $data;
+    }
+
+    public function traerplantillas($data = false) {
+        $filtrocid = (!empty($data['cid'])) ? "and `id_campaign` in (".$data['cid'].")" : "";
+        $query = $this->db->query("SELECT `id_campaign`, `name`, `file` from `crm_plant_pdf`
+            where `active`=1 $filtrocid order by `name`");
+
+        return $query->result();
+    }
+
+    public function traerdata() {
+        $data = $this->input->post();
+        $data['cuenta'] = 0;
+        $data['min'] = convierte($data['min'], $this->idfor);
+        $data['max'] = convierte($data['max'], $this->idfor);
+        if($this->db->table_exists('formd_'.$data['fid'].'_crm')) {
+            $filtro = "WHERE DATE(f.`apertura`) BETWEEN '" . $data['min'] . "' AND '" . $data['max'] . "' ";
+            $filtro .= (!empty($data['tid'])) ? "AND f.`id` = '" . $data['tid'] . "'" : "";
+            $filtro .= (!empty($data['estatus'])) ? "AND f.`estatus` = '" . $data['estatus'] . "'" : "";
+            $query = $this->db->query("SELECT count(f.id) AS cuenta FROM `formd_".$data['fid']."` AS f $filtro");
+            $data["cuenta"] = $query->row()->cuenta;
+            $query = $this->db->query("SELECT f.*, date_format(apertura, '$this->dtfor') apertura,
+                IF(LENGTH(f.detalle)>20,CONCAT(SUBSTRING(f.detalle,1,20),'...'),f.detalle) detcorto,
+                CONCAT(c.name,' ',c.last) cliente, concat(u.name,' ',u.last) agente
+                from `formd_".$data['fid']."` f
+                left join client c on c.id = f.id_cliente
+                left join user u on u.id = f.asignar_a $filtro limit ".$data['pag'].", ".REGS_POR_PAG);
+            $res = $query->result();
+            $data["data"] = "";
+            foreach ($res as $key => $row) {
+                $data["data"] .= "<div class='table-row'><div class='table-cell'>$row->id</div><div class='table-cell'";
+                if(strlen($row->detcorto)>20) {
+                    $data['data'] .= " data-toggle='tooltip' title='$row->detalle'";
+                }
+                $data['data'] .= ">$row->detcorto</div><div class='table-cell'>$row->cliente</div>
+                    <div class='table-cell'>$row->agente</div><div class='table-cell'>$row->apertura</div>
+                    <div class='table-cell'>$row->cierre</div><div class='table-cell'>$row->estatus</div>
+                    <div class='table-cell'>";
+                if($row->estatus=='Cerrado') {
+                    $data['data'] .= "<button class='btn btn-info reabrir' data-id='$row->id'>Reabrir</button>";
+                }
+                if($row->estatus!='Cerrado' && !empty($row->asignar_a)) {
+                    $data['data'] .= "<button class='btn btn-info transfer' data-id='$row->id'>Transferir</button>";
+                }
+                $data['data'] .= "</div></div>";
+            }
+        }
+        return $data;
+    }
+
+    public function transferir() {
+        // fid: form id, rid: register id, tid: para quien (to) id
+        $data = $this->input->post();
+        $pid = (empty($data['pl4n71ll4'])) ? 0 : $data['pl4n71ll4'];
+        $query = $this->db->query("SELECT * from `formd_".$data['fid']."` where `id` = ?", [$data['rid']]);
+        $regis = $query->row();
+        $query = $this->db->query("UPDATE `formd_".$data['fid']."` set `asignar_a`=?, `estatus`='En proceso'
+            where `id` = ?", [$data['tid'], $data['rid']]);
+        if ($query) {
+            $query = $this->db->query("INSERT INTO `formd_".$data['fid']."_crm` (`id_formd`, `id_user`, `fecha`, `comentario`, `estatus`)
+                values (?, ?, now(), 'Ticket transferido', 'En proceso')",
+                [$data['rid'], $this->session->userdata("uid")]
+            );
+            if ($query) {
+                $inform = $this->informar(['fid'=>$data['fid'], 'id'=>$data['rid'], 'pid'=>$pid]);
+                return ['status'=>'Ok', 'msg'=>'Registro transferido', 'infrmr'=>$inform];
+            }
+        }
+        return ['status'=>'error', 'msg'=>'No se transfirio'];
+    }
+
+    public function reabrir() {
+        $data = $this->input->post();
+        $pid = (empty($data['pl4n71ll4'])) ? 0 : $data['pl4n71ll4'];
+        $query = $this->db->query("SELECT * from `formd_".$data['fid']."` where `id` = ?", [$data['rid']]);
+        $regis = $query->row();
+        if( isset($regis) ){
+            // CAMPOS QUE SERAN NULOS EN EL UPDATE DEL FORMD_#
+            $ArregloReseteo = [];
+            $ArregloReseteo["cierre"]  = "datetime";
+            $set = "";
+            $query = $this->db->query("SELECT * from form_fields where id_form = ?", [$data['fid']]);
+            // COMPRUEBA QUE LOS CAMPOS QUE SERAN NULOS EXISTEN EN LA TABLA form_fields QUE A SU VEZ CONFORMAN LA TABLA FORMD_#
+            foreach ($query->result() as $key => $row) {
+                if( array_key_exists( $row->slug, $ArregloReseteo ) && $ArregloReseteo[$row->slug] == $row->type ) $set .= ", $row->slug=null";
+            }
+            $query = $this->db->query("UPDATE `formd_".$data['fid']."` set `estatus`='En proceso' $set
+                where `id` = ?", [$data['rid']]);
+            if ($query) {
+                $query = $this->db->query("INSERT INTO `formd_".$data['fid']."_crm` (`id_formd`, `id_user`, `fecha`, `comentario`, `estatus`)
+                    values (?, ?, now(), ?, 'En proceso')",
+                    [$data['rid'], $this->session->userdata("uid"), $data['razon']]
+                );
+                $query = $this->db->query("INSERT INTO `formd_".$data['fid']."_crm` (`id_formd`, `id_user`, `fecha`, `comentario`, `estatus`)
+                    values (?, ?, now(), 'Ticket reabierto', 'En proceso')",
+                    [$data['rid'], $this->session->userdata("uid")]
+                );
+                if ($query) {
+                    $inform = $this->informar(['fid'=>$data['fid'], 'id'=>$data['rid'], 'pid'=>$pid]);
+                    return ['status'=>'Ok', 'msg'=>'Registro reabierto', 'infrmr'=>$inform];
+                }
+            }
+        }
+        return ['status'=>'error', 'msg'=>'No se abrió'];
+    }
+
+    public function getCrmHisto($id_form, $id) {
+        $query = $this->db->query("SELECT c.id, c.id_formd, c.id_user, c.uniqueid,
+            date_format(c.fecha, '$this->dtfor') fecha, c.comentario, c.estatus, concat(u.name,' ',u.last) agente
+            from `formd_".$id_form."_crm` c
+            inner join user u on u.id = c.id_user
+            where c.id_formd = '".$id."'");
+
+        return $query->result();
+    }
+
+    public function getFileHisto($id_form, $id) {
+        $query = $this->db->query("SELECT f.id, f.id_formd, f.id_user, date_format(f.fecha, '$this->dtfor') fecha,
+        f.name, f.filename, concat(u.name,' ',u.last) agente
+        from `formd_".$id_form."_file` f
+        inner join user u on u.id = f.id_user
+        where f.id_formd = '".$id."'");
+
+        return $query->result();
+    }
+
+    public function informar($data) {
+        $form  = $this->db->query("SELECT * FROM form WHERE id = ?", [$data['fid']])->row();
+        $query = $this->db->query("SELECT eac.* FROM form f
+            INNER JOIN email_account eac ON f.id_email_account = eac.id
+            WHERE f.crm = 1 AND f.id = ?
+            ORDER BY f.id DESC LIMIT 1", [$data['fid']]);
+        $email = $query->row();
+        if ($email || isset($data['previewem'])) {
+            $query  = $this->db->query("SELECT *, apertura AS apertura_iso_8601, date_format(apertura, '$this->dtfor') apertura
+                FROM `formd_".$data['fid']."` WHERE `id` = ?", $data['id']);
+            $ticket = $query->row();
+            //Consultamos si este ticket tiene alguna tabla dependiente
+            $tbrs = $this->db->query("SELECT id, slug, depend
+                FROM form_fields ff
+                where id_form = ?
+                AND descen = 'ttbbrr'", [$data['fid']])->result();
+            if( count($tbrs) > 0 ) {
+                //Recorremos todas las tablas dependientes
+                foreach( $tbrs as $tbr) {
+                    $tabla          = "formd_".$data['fid']."_tb".$tbr->depend;
+                    $slug           = $tbr->slug;
+                    $id_form_fields = $tbr->id;
+                    $tfd            = 'tbr_field_detail';
+                    // OBTENEMOS LA LISTA DE PROPIEDADES DE CADA CAMPO
+                    $ff_tbr = $this->db->query("SELECT name, slug, type
+                    FROM form_fields_tbr
+                    WHERE id_form = ?
+                    AND id_form_fields = ?
+                    ORDER BY `order`",[$data['fid'], $id_form_fields])->result();
+                    // Validamos si esta tbr cuenta con la funcionalidad de datetime_pdf
+                    $datetime_pdf = false;
+                    $datetime_pdf_slug = '';
+                    foreach ($ff_tbr as $item) {
+                        if( $item->type == 'datetime_pdf' && $datetime_pdf === false ) {
+                            $datetime_pdf_slug = $item->slug;
+                            $datetime_pdf = true;
+                        }
+                    }
+                    // Obtiene los registros de esa tbr a mostrar
+                    if( $datetime_pdf === true && !empty($data['pid']) ) {
+                        $now = date('Y-m-d H:i:s');
+                        // Actualizamos lo que tenga datetime_pdf = null a $now
+                        $this->db->query("UPDATE $tabla
+                            SET $datetime_pdf_slug = '$now'
+                            WHERE id_formd = ?
+                            AND $datetime_pdf_slug IS NULL",[$data['id']]
+                        );
+                        // Seleccionamos lo que tenga datetime_pdf = null
+                        $ticket->$slug  = $this->db->query("SELECT *
+                            FROM $tabla
+                            WHERE id_formd = ?
+                            AND $datetime_pdf_slug = '$now'",[$data['id']]
+                        )->result();
+                    } else {
+                        $ticket->$slug  = $this->db->query("SELECT * FROM $tabla WHERE id_formd = ?",[$data['id']])->result();
+                    }
+                    //Reorganizamos los campos
+                    $detail = [];
+                    foreach ($ff_tbr as $item)
+                        $detail[$item->slug] = [ 'name' => $item->name, 'type' => $item->type];
+                    $ticket->$tfd[$slug] = $detail; 
+                }
+            }
+            $query  = $this->db->query("SELECT * FROM form_fields
+                WHERE id_form = ? AND report=1 ORDER BY `order` ASC", $data['fid']);
+            $form_fields = $query->result();
+            $query  = $this->db->query("SELECT `id_user`, concat(u.name, ' ', u.last) agente,
+                date_format(fecha, '$this->dtfor') fecha, `comentario`
+                FROM `formd_".$data['fid']."_crm` f join user u on u.id=f.id_user WHERE f.`id_formd` = ?
+                ORDER BY f.`id` DESC LIMIT 1", $data['id']);
+            $modi   = $query->row();
+            $query  = $this->db->query("SELECT `email` AS 'user' FROM `client`
+                where `id` = '$ticket->id_cliente'");
+            $client = $query->row();
+            $query  = $this->db->query("SELECT `user` FROM `user` where `id` = '$ticket->asignar_a'");
+            $assign = $query->row();
+            // $query  = $this->db->query("SELECT `user` FROM `user` where `id` = '$modi->id_user'");
+            // $quien  = $query->row();
+            $email_client = '';
+            if (empty($data['enviara'])) {
+                $enviara = array();
+                if (!empty($client) && $client->user != "") {$email_client = $client->user;}
+                if (!empty($assign) && !in_array($assign->user, $enviara)) $enviara[] = $assign->user;
+                // if (!in_array($quien->user, $enviara)) $enviara[] = $quien->user;
+                if (!empty($ticket->informar)) {
+                    $ticket->informar = preg_replace('/( )/u','',$ticket->informar);
+                    $ticket->informar = trim($ticket->informar, ',');
+                    $ticket->informar = explode(',', $ticket->informar);
+                    foreach ($ticket->informar as $value) {
+                        if (!in_array($value, $enviara)) $enviara[] = $value;
+                    }
+                }
+            } else {
+                $enviara = $data['enviara'];
+            }
+
+            $query = $this->db->query("SELECT * FROM crm_light WHERE id_form = ?", [$data['fid']]);
+            $sem = $query->row();
+            $adi = "";
+            if ($sem) {
+                $circ = ($ticket->semaforo == "rojo") ? "rojo <span style='color:red;background-color:red;border-radius:10px;width:20px;height:20px;display:block;text-align:center'>X</span>" :
+                    (($ticket->semaforo == "amarillo") ? "amarillo  <span style='color:yellow;background-color:yellow;border-radius:10px;width:20px;height:20px;display:block;text-align:center'>X</span>" : "verde  <span style='color:green;background-color:green;border-radius:10px;width:20px;height:20px;display:block;text-align:center'>X</span>");
+                $adi = "Ticket en $circ <br /><br />"; // $ticket->semaforo
+            }
+            if (!empty($data['adi'])) {
+                $adi = $adi . $data['adi'];
+            }
+            $title  = "Assertive ticket ID ".$data['id'];
+            $cats = [];
+            if ($this->db->table_exists('formd_'.$data['fid'].'_cats')) {
+                $cats = $this->db->query("SELECT * FROM formd_".$data['fid']."_cats ORDER BY field, seq, eti")->result();
+            }
+            foreach ($cats as $value) {
+                $fincats[$value->field][$value->val] = $value->eti;
+            }
+            $contentdata = [
+                'ticket'=>$ticket,
+                'fields'=>$form_fields,
+                'cats'=>$fincats,
+                'modi'=>$modi,
+                'eid'=>$email->id ?? 0,
+                'adi'=>$adi
+            ];
+            if (!empty($data['previewem'])) {
+                $content = $this->load->view('especiales/crmemail', $contentdata);
+                return true;
+            }
+            $content = $this->load->view('especiales/crmemail', $contentdata, true);
+            if (empty($email)) {
+                // addtocronlog("No se encontró la cuenta de correo para enviar.");
+                return ['error'=>'No se encontró la cuenta de correo para enviar.'];
+            }
+            $lapas = encuentra($email->out_pass, $email->email);
+
+            $emailconfig = array(
+                'protocol'     => 'smtp',
+                'smtp_host'    => $email->out_servidor,
+                'smtp_port'    => $email->out_puerto,
+                'smtp_user'    => $email->out_user,
+                'smtp_pass'    => $lapas,
+                'smtp_timeout' => 5,
+                'mailtype'     => 'html',
+                'charset'      => 'utf-8',
+                'newline'      => "<br>"
+            );
+
+            if (!empty($email->out_seguridad)) {
+                $emailconfig['smtp_crypto'] = $email->out_seguridad;
+            }
+            $content .= signature_email($email->signature_text, $email->signature_img, $email->id);
+            if (!empty($data['pid'])) {
+                $query = $this->db->query("SELECT `file` FROM crm_plant_pdf WHERE id = ?", [$data['pid']]);
+                $adjuntar = true;
+                $attach = true;
+                $reg = $ticket;
+                include_once(APPPATH . "views/" . $query->row()->file . ".php");
+                $attach = base64_encode($attach);
+            }
+            //Definimos la variable attach en caso de que no exista para evitar el error undefined y la seteamos a null
+            $attach = (isset($attach)) ? $attach : null;
+            $this->load->library("email");
+            $respu = ["msg"=>""];
+            foreach ($enviara as $value) {
+                $this->email->clear(true);
+                if (filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                    $this->email->initialize($emailconfig);
+                    $this->email->to($value);
+                    $this->email->from($email->email, $email->nombre);
+                    $this->email->subject($title);
+                    $this->email->message($content);
+                    if (!empty($data['pid'])) {
+                        $this->email->attach(base64_decode($attach), 'attachment', 'Informe ', 'application/pdf');
+                    }
+                    if ($this->email->send()) {
+                        $respu["msg"] .= "Enviado a ".$value.", ";
+                    } else {
+                        $respu["error"] = $this->email->print_debugger(array('headers')).", ";
+                    }
+                }
+            }
+            //En caso de ser un cliente, no se le enviara pdf adjunto, solo la notificación
+            if(!empty($email_client)) {
+                $this->email->clear(true);
+                if (filter_var($email_client, FILTER_VALIDATE_EMAIL)) {
+                    $this->email->initialize($emailconfig);
+                    $this->email->to($email_client);
+                    $this->email->from($email->email, $email->nombre);
+                    $this->email->subject($title);
+                    $this->email->message($content);
+                    if ($this->email->send()) {
+                        $respu["msg"] .= "Enviado a ".$email_client.", ";
+                    } else {
+                        $respu["error"] = $this->email->print_debugger(array('headers')).", ";
+                    }
+                }
+            }
+            $respu["msg"] = trim($respu["msg"], ', ');
+
+            // Informar fijo en caso de que la columna infijo exista en la tabla form y tenga valor
+            if (!empty($form->infijo) && isset($data['proceso']) && $data['proceso'] == 'insert') {
+                $mails = $this->emailsValidos($form->infijo);
+                debug_log("Infijo: " . $data['fid'] . ' ' . $data['id'] . ' ' . $mails);
+                try {
+                    $this->email->clear(true);
+                    $this->email->initialize($emailconfig);
+                    $this->email->to($mails);
+                    $this->email->from($email->email, $email->nombre);
+                    $this->email->subject($title);
+                    $this->email->message($content);
+                    if (!$this->email->send()) {
+                        debug_log($this->email->print_debugger(array('headers')).", ");
+                    }
+                } catch (Exception $e) {
+                    debug_log($e->getMessage());
+                }
+            }
+
+            return $respu;
+        }
+
+        return false;
+    }
+
+    private function emailsValidos($emails) {
+        $emails = str_replace(" ", "", $emails);
+        $emails = explode(",", $emails);
+        $validos = [];
+        foreach ($emails as $email) {
+            if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $validos[] = $email;
+            }
+        }
+
+        return implode(",", $validos);
+    }
+
+    public function tickets($data) {
+        if (!$this->db->field_exists('semaforo', 'formd_'.$data['formulario'])) {
+            $this->db->query("ALTER TABLE `formd_".$data['formulario']."` ADD `semaforo` ENUM('verde','amarillo','rojo') NOT NULL DEFAULT 'verde'");
+            $this->db->query("INSERT INTO form_fields (`id_form`, `name`, `slug`, `type`, `len`, `editable`, `base`, `front`, `report`, `order`) VALUES
+                (?, 'Semáforo', 'semaforo', 'text', 10, 0, 1, 0, 0, 50)", [$data['formulario']]);
+        }
+        $masfields = ", COALESCE(IF(LENGTH(f.detalle)>30,CONCAT(SUBSTRING(f.detalle,1,30),'...'),f.detalle),'') ticket, `semaforo` AS 'Semáforo'";
+        // $data['cbl'] = [];
+        // $permitidos  = ['estatus','cierre','semaforo'];
+        if (!empty($data['paraexcel'])) {
+            $masfields = ", f.detalle ticket";
+            $listos = ['id','estatus','apertura','cierre','detalle','asignar_a','id_user'];
+            $query = $this->db->query("SELECT `name`, `slug`, `type` from `form_fields`
+                where id_form = ? AND report = 1 order by `order`", $data['formulario']);
+            foreach ($query->result() as $field) {
+                // if (!in_array($field->slug, $permitidos)) {
+                //     $data['cbl'][] = $field->slug;
+                // }
+                if (!in_array($field->slug, $listos)) {
+                    $masfields .= ", `$field->slug` as `".$field->name."`";
+                    $listos[] = $field->slug;
+                }
+            }
+        }
+        $maswere  = " AND f.id_user in ($data[agente])";
+        $maswere .= (empty($data['estatus'])) ? "" : " AND f.estatus = '$data[estatus]'";
+        $prequery = "SELECT f.id Ticket_ID, COALESCE(concat(a.name,' ',a.last),'') agente,
+            COALESCE(concat(u.name,' ',u.last),'') asignado,
+            COALESCE(date_format(f.apertura, '$this->dtfor'),'') apertura,
+            COALESCE(f.estatus,'') estatus, COALESCE(date_format(f.cierre, '$this->dtfor'),'') cierre
+            $masfields
+            from formd_" . $data['formulario'] . " f left join user u on u.id=f.asignar_a
+            left join user a on a.id=f.id_user
+            where date(f.apertura) between '" . $data['min'] . "' and '".$data['max']."' ".$maswere;
+        $query = $this->db->query($prequery);
+        $data["cuenta"] = $query->num_rows();
+        $data["campos"] = $query->list_fields();
+        if ($data["pag"]==="x") {
+            $data["data"] = $query->result_array();
+            return $data;
+        }
+        $limites = " limit ".$data['pag'].", ".$data['rpp'];
+        $query = $this->db->query($prequery . $limites);
+        $data["data"] = $query->result();
+
+        return $data;
+    }
+
+    public function crmstatus($data) {
+        $json = [];
+        $query = $this->db->query("SELECT count(COALESCE(estatus,'Sin status')) cuantos, COALESCE(estatus,'Sin status') estatus from formd_".$data['crm']." group by estatus");
+        $json['estatus'] = $query->result();
+
+        //Validamos si contiene el campo semaforo
+        $json['semaforo'] = [];
+        $json['is_valid'] = $this->db->field_exists('semaforo', 'formd_'.$data['crm']);
+        if($json['is_valid']) {
+            $query = $this->db->query("SELECT
+            COUNT(COALESCE(NULLIF(a.semaforo, ''), 'verde')) cuantos,
+            COALESCE(NULLIF(a.semaforo, ''), 'verde') semaforo
+            FROM crm_light b
+            INNER JOIN formd_".$data['crm'] . " a ON b.id_form = '" .
+            $data['crm'] . "' GROUP BY a.semaforo");
+            $json['semaforo'] = $query->result();
+        }
+
+        return $json;
+    }
+
+    public function getFormsXAgente() {
+        $query = $this->db->query("SELECT f.*, c.name campana from form f
+            join campaign c on c.id = f.id_campaign where f.crm = 1 and f.active = 1 and f.id_campaign in (".$this->udata['campanas'].")");
+        return $query->result();
+    }
+
+    public function getickets($data) {
+        if (empty($data['fid']) || empty($this->udata['id'])) return ['error'=>'Sin datos suficientes'];
+        if (empty($data['tid'])) {
+            $ini = (empty($data['pag'])) ? 0 : $data['pag'];
+            $lim = (empty($data['rpp'])) ? REGS_POR_PAG : $data['rpp'];
+            $testatus = ($data['testatus']==1) ? "AND estatus != 'Cerrado'" : (($data['testatus']==2) ? "AND estatus = 'Cerrado'" : "");
+            $query = $this->db->query("SELECT count(*) tot from formd_" . $data['fid'] . " WHERE asignar_a = ? $testatus", $this->udata['id']);
+            $data['tot'] = $query->row()->tot;
+            $query = $this->db->query("SELECT f.*, concat(c.name,' ',c.last) cliente, date_format(f.apertura, '$this->dtfor') apertura
+                from formd_" . $data['fid'] . " f left join client c on c.id = f.id_cliente
+                WHERE asignar_a = ? $testatus order by if(f.estatus = 'Cerrado', 1, 0), f.id limit $ini, $lim", $this->udata['id']);
+            $data['data'] = $query->result();
+        } else {
+            $query = $this->db->query("SELECT f.*, concat(c.name,' ',c.last) cliente, date_format(f.apertura, '$this->dtfor') apertura
+                from formd_" . $data['fid'] . " f left join client c on c.id = f.id_cliente WHERE f.asignar_a = ? and f.id = ?",
+                [$this->udata['id'], $data['tid']]);
+            $data['data'] = $query->result();
+            $data['tot'] = count($data['data']);
+        }
+        if (count($data['data'])>0) {
+            foreach ($data['data'] as $key => $reg) {
+                $query = $this->db->query("SELECT h.*, concat(u.name,' ',u.last) agente from formd_" . $data['fid'] . "_crm h
+                    join user u on u.id = h.id_user where h.id_formd = ?", $reg->id);
+                $data['data'][$key]->histo = $query->result();
+                $query = $this->db->query("SELECT f.*, concat(u.name,' ',u.last) agente from formd_" . $data['fid'] . "_file f
+                    join user u on u.id = f.id_user where f.id_formd = ?", $reg->id);
+                $data['data'][$key]->files = $query->result();
+            }
+        }
+
+        return $data;
+    }
+
+    //Modelo para los reportes pdfs de AICM
+    public function get_tickapdf($data) {
+        if (!$this->db->table_exists('formd_' . $data['crm'])) return false;
+        $formd_name = 'formd_' . $data['crm'];
+        list($dateformat, $timeformat) = explode(" ", $this->dtfor);
+        switch ($data['plantilla']) {
+            case 'tap_inges':
+                if (!$this->db->field_exists('ing_resp', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('marca', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('modelo', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('no_serie', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('ubicacion', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('detalle', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('apertura', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('cierre', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('atte_sitio', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('llegada', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('acciones', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('creacion', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('termino', 'formd_' . $data['crm'])) return false;
+                $query = $this->db->query("SELECT id, ing_resp, marca, modelo, no_serie, ubicacion, detalle,
+                    COALESCE(date_format(creacion, '$dateformat'), '') fecha,
+                    TIME(creacion) hora, COALESCE(date_format(termino, '$dateformat'), '') fecha_cierre, COALESCE(TIME(termino), '') hora_cierre, estado_final,
+                    COALESCE(date_format(llegada, '$dateformat'), '') fecha_llegada, COALESCE(TIME(llegada), '') hora_llegada, acciones
+                    FROM formd_" . $data['crm'] .
+                    " WHERE YEAR(creacion) = ? and MONTH(creacion) = ?", [$data['ano'], $data['mes']]);
+                break;
+
+            case 'ing_op':
+                if (!$this->db->field_exists('estado_final', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('aduana', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('ubicacion', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('marca', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('modelo', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('no_serie', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('detalle', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('nom_contacto', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('cargo', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('telefono', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('informar', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('resuelto_por_tel', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('atte_menos_2_hrs', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('fecha_contacto', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('ing_contactado', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('llegada', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('diagnostico', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('accion_realizada', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('refacciones', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('observaciones', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('termino', 'formd_' . $data['crm'])) return false;
+                if (!$this->db->field_exists('plan_ans', 'formd_' . $data['crm'])) return false;
+                $timeformat = '%H:%i';
+                $query = $this->db->query("SELECT id, estado_final,
+                    aduana, ubicacion, marca, modelo, no_serie,
+                    detalle, nom_contacto, cargo, telefono, informar,
+                    resuelto_por_tel, atte_menos_2_hrs,fecha_contacto, ing_contactado,
+                    llegada, diagnostico, accion_realizada, refacciones, observaciones,
+                    termino, plan_ans,
+                    COALESCE(date_format(fecha_contacto, '$dateformat'), '') fecha_contacto_f, COALESCE(date_format(fecha_contacto, '$timeformat'), '') fecha_contacto_h,
+                    COALESCE(date_format(fecha_contacto, '%d-%m-%Y'), '') fecha_contacto_ff,
+                    COALESCE(date_format(llegada, '$dateformat'), '') llegada_f, COALESCE(date_format(llegada, '$timeformat'), '') llegada_h,
+                    COALESCE(date_format(f_hora_de_llamada, '$dateformat'), '') f_hora_de_llamada_f, COALESCE(date_format(f_hora_de_llamada, '$timeformat'), '') f_hora_de_llamada_h,
+                    COALESCE(date_format(termino, '$dateformat'), '') termino_f, COALESCE(date_format(termino, '$timeformat'), '') termino_h
+                    FROM formd_" . $data['crm'] .
+                    " WHERE YEAR(apertura) = ? and MONTH(apertura) = ? and contrato='ANAM'", [$data['ano'], $data['mes']]);
+                break;
+
+            case 'sedena_leidos':
+                $campos = ['creacion','serie','marca','modelo','ubicacion','tema_de_ayuda','quien_reporta','telefono','cargo','detalle','ing_resp','llegada',
+                    'acciones','termino','estado_final','observaciones'];
+                foreach ($campos as $item) {
+                    if (!$this->db->field_exists($item, 'formd_' . $data['crm'])) {
+                        return false;
+                    }
+                }
+                $timeformat = '%H:%i';
+                $query = $this->db->query("SELECT id, ing_resp,
+                    creacion, serie, marca, modelo, ubicacion, tema_de_ayuda, quien_reporta, telefono, cargo, detalle, llegada, acciones, termino, estado_final, observaciones,
+                    COALESCE(date_format(creacion, '$dateformat'), '') creacion_f, COALESCE(date_format(creacion, '$timeformat'), '') creacion_h,
+                    COALESCE(date_format(llegada, '$dateformat'), '') llegada_f, COALESCE(date_format(llegada, '$timeformat'), '') llegada_h,
+                    COALESCE(date_format(termino, '$dateformat'), '') termino_f, COALESCE(date_format(termino, '$timeformat'), '') termino_h
+                FROM $formd_name
+                WHERE YEAR(apertura) = ? and MONTH(apertura) = ?", [$data['ano'], $data['mes']]);
+                break;
+
+            case 'provetecnia_cargo':
+                $campos = ['creacion','fuente','serie','marca','modelo','ubicacion','contrato','ing_a_cargo','tema_de_ayuda','quien_reporta','telefono','cargo',
+                'resolucion','llegada','acciones','termino','estado_final','observaciones'];
+                foreach ($campos as $item) {
+                    if (!$this->db->field_exists($item, 'formd_' . $data['crm'])) {
+                        return false;
+                    }
+                }
+                $timeformat = '%H:%i';
+                $query = $this->db->query("SELECT id, ing_a_cargo,
+                    COALESCE(date_format(creacion, '$dateformat'), '') creacion_f, COALESCE(date_format(creacion, '$timeformat'), '') creacion_h,
+                    serie, modelo, marca, ubicacion, contrato, tema_de_ayuda, quien_reporta, telefono, cargo, detalle, resolucion, 
+                    COALESCE(date_format(llegada, '$dateformat'), '') llegada_f, COALESCE(date_format(llegada, '$timeformat'), '') llegada_h,
+                    acciones, estado_final, observaciones,
+                    COALESCE(date_format(termino, '$dateformat'), '') termino_f, COALESCE(date_format(termino, '$timeformat'), '') termino_h
+                    FROM $formd_name
+                    WHERE YEAR(apertura) = ? and MONTH(apertura) = ?", [$data['ano'], $data['mes']]);
+                break;
+
+            case 'iosa_rx':
+                $campos = ['creacion','fuente','serie','marca','modelo','ubicacion','contrato','ing_a_cargo', 'coordinador', 'tema_de_ayuda','quien_reporta','telefono','cargo',
+                'resolucion','llegada','acciones','termino','estado_final','observaciones'];
+                foreach ($campos as $item) {
+                    if (!$this->db->field_exists($item, 'formd_' . $data['crm'])) {
+                        return false;
+                    }
+                }
+                $timeformat = '%H:%i';
+                $query = $this->db->query("SELECT id, ing_a_cargo, coordinador,
+                    COALESCE(date_format(creacion, '$dateformat'), '') creacion_f, COALESCE(date_format(creacion, '$timeformat'), '') creacion_h,
+                    serie, modelo, marca, ubicacion, contrato, tema_de_ayuda, quien_reporta, telefono, cargo, detalle, resolucion, 
+                    COALESCE(date_format(llegada, '$dateformat'), '') llegada_f, COALESCE(date_format(llegada, '$timeformat'), '') llegada_h,
+                    acciones, estado_final, observaciones,
+                    COALESCE(date_format(termino, '$dateformat'), '') termino_f, COALESCE(date_format(termino, '$timeformat'), '') termino_h
+                    FROM $formd_name
+                    WHERE YEAR(apertura) = ? and MONTH(apertura) = ?", [$data['ano'], $data['mes']]);
+                break;
+
+            case 'segtec':
+                $campos = ['asignar_a','fhora_llegada','no_serie', 'modelo', 'ubicacion', 'area_reporta', 'descripcion', 'actividad_realizada', 'estado_final', 'fhora_termino'];
+                foreach ($campos as $item) {
+                    if (!$this->db->field_exists($item, 'formd_' . $data['crm'])) {
+                        return false;
+                    }
+                }
+                $timeformat = '%H:%i';
+                $query = $this->db->query("SELECT f.id, f.fhora_llegada, f.no_serie, f.marca, f.modelo, f.ubicacion, f.area_reporta, f.descripcion,
+                    f.actividad_realizada, f.estado_final,
+                    f.fhora_termino, f.id_cliente, f.detalle, f.estado_final,
+                    CONCAT(u.name,' ',u.last) asignar_a,
+                    COALESCE(date_format(f.apertura, '$dateformat'), '') apertura_f, COALESCE(date_format(f.apertura, '$timeformat'), '') apertura_h,
+                    COALESCE(date_format(f.fhora_llegada, '$dateformat'), '') fhora_llegada_f, COALESCE(date_format(f.fhora_llegada, '$timeformat'), '') fhora_llegada_h,
+                    COALESCE(date_format(f.fhora_termino, '$dateformat'), '') fhora_termino_f, COALESCE(date_format(f.fhora_termino, '$timeformat'), '') fhora_termino_h,
+                    COALESCE(date_format(f.cierre, '$dateformat'), '') cierre_f, COALESCE(date_format(f.cierre, '$timeformat'), '') cierre_h
+                FROM $formd_name f
+                LEFT JOIN user u on u.id = f.asignar_a
+                WHERE YEAR(apertura) = ? and MONTH(apertura) = ?", [$data['ano'], $data['mes']]);
+                break;
+
+            case 'otros_clientes':
+                $campos = [
+                    'id','creacion','no_serie', 'marca', 'modelo', 'ubicacion', 'direccion', 'cliente', 'no_inventario', 'version', 'detalle', 'nombre_contacto', 'llegada',
+                    'ing_contactado', 'como_se_encontro', 'accion_realizada', 'estatus_final', 'termino',
+                    'estatus', 'cargo', 'telefono', 'informar', 'f_hora_llamada', 'asignar_a', 'resuelto_por_tel', 'atte_menos_2_hrs', 'diagnostico', 'refaccion_instalada',
+                    'refaccion_retirada', 'observaciones', 'cantidad_muestreos', 'tiempo_reparacion'
+                ];
+                foreach ($campos as $item) {
+                    if (!$this->db->field_exists($item, 'formd_' . $data['crm'])) {
+                        return false;
+                    }
+                }
+                $timeformat = '%H:%i';
+                $query = $this->db->query("SELECT f.id, f.creacion, f.no_serie, f.marca, f.modelo, f.ubicacion, f.direccion, f.cliente, f.no_inventario, f.version, f.detalle,
+                    f.nombre_contacto, f.llegada, f.ing_contactado, f.como_se_encontro, f.accion_realizada, f.estatus_final, f.termino,
+                    f.estatus, f.cargo, f.telefono, f.informar, COALESCE(date_format(f.f_hora_llamada, '$dateformat $timeformat'), '') AS f_hora_llamada,
+                    f.refaccion_instalada, f.refaccion_retirada, f.observaciones, f.cantidad_muestreos, f.tiempo_reparacion,
+                    concat(c.name,' ',c.last) asignar_a, resuelto_por_tel, atte_menos_2_hrs, diagnostico,
+                    COALESCE(date_format(f.creacion, '$dateformat'), '') creacion_f, COALESCE(date_format(f.creacion, '$timeformat'), '') creacion_h,
+                    COALESCE(date_format(f.llegada, '$dateformat'), '') llegada_f, COALESCE(date_format(f.llegada, '$timeformat'), '') llegada_h,
+                    COALESCE(date_format(f.termino, '$dateformat'), '') termino_f, COALESCE(date_format(f.termino, '$timeformat'), '') termino_h
+                FROM $formd_name f
+                LEFT JOIN user c on c.id = f.asignar_a
+                WHERE YEAR(f.apertura) = ? and MONTH(f.apertura) = ?", [$data['ano'], $data['mes']]);
+                break;
+
+            case 'crm/toner_no_visible':
+                $campos = ['fecha_pedido','serie','modelo','cliente','contacto','asignacion','para_que_modelo','ubicacion','ciudad','estado','cantidad','no_parte','descripcion','proforma','ejecutivo_ccc'];
+                foreach ($campos as $item) {
+                    if (!$this->db->field_exists($item, 'formd_' . $data['crm']))
+                        return false;
+                }
+                $timeformat = '%H:%i';
+                $query = $this->db->query("SELECT f.id, f.fecha_pedido, f.serie, f.modelo, f.cliente, f.contacto, f.asignacion, f.para_que_modelo, f.ubicacion,
+                f.ciudad, f.estado, f.cantidad, f.no_parte, f.descripcion, f.proforma, f.ejecutivo_ccc,
+                COALESCE(date_format(f.fecha_pedido, '$dateformat'), '') fecha_pedido_f
+                FROM $formd_name f
+                WHERE YEAR(f.apertura) = ? and MONTH(f.apertura) = ?", [$data['ano'], $data['mes']]
+                );
+                break;
+
+            case 'crm/refaccion_no_visible':
+                $campos = ['fecha_pedido','serie','modelo','cliente','contacto','asignacion','para_que_modelo','ubicacion','ciudad','estado','cantidad','no_parte','descripcion','proforma','ejecutivo_ccc'];
+                foreach ($campos as $item) {
+                    if (!$this->db->field_exists($item, 'formd_' . $data['crm']))
+                        return false;
+                }
+                $timeformat = '%H:%i';
+                $query = $this->db->query("SELECT f.id, f.fecha_pedido, f.serie, f.modelo, f.cliente, f.contacto, f.asignacion, f.para_que_modelo, f.ubicacion,
+                f.ciudad, f.estado, f.cantidad, f.no_parte, f.descripcion, f.proforma, f.ejecutivo_ccc,
+                COALESCE(date_format(f.fecha_pedido, '$dateformat'), '') fecha_pedido_f
+                FROM $formd_name f
+                WHERE YEAR(f.apertura) = ? and MONTH(f.apertura) = ?", [$data['ano'], $data['mes']]
+                );
+                break;
+
+            default:
+                return false;
+                break;
+        }
+
+        return $query->result();
+    }
+
+    public function tickets_detalle($data) {
+        if($this->db->table_exists('formd_'.$data['formulario'].'_crm')) {
+            $maswere  = "date(f.apertura) between '" . $data['min'] . "' and '" . $data['max'] . "'";
+            $maswere .= (empty($data['bus']))     ? "" : " AND f.id = '" . $data['bus'] . "'";
+            $maswere .= (empty($data['estatus'])) ? "" : " AND f.estatus = '" . $data['estatus'] . "'";
+            $prequery = "SELECT f.id TicketID, COALESCE(CONCAT(ua.name,' ',ua.last),'') Asignado,
+                f.apertura Apertura, COALESCE(f.estatus,'') 'Estatus actual',
+                m.fecha 'Mov fecha', concat(u.name, ' ', u.last) 'Mov Usuario', m.estatus 'Mov Estatus',
+                COALESCE(IF(LENGTH(m.comentario)>30,CONCAT(SUBSTRING(m.comentario,1,30),'...'),m.comentario),'') Comentario
+                FROM formd_".$data['formulario']." f LEFT JOIN user ua on ua.id = f.asignar_a
+                LEFT JOIN formd_".$data['formulario']."_crm m on m.id_formd = f.id
+                LEFT JOIN user u on u.id=m.id_user where ".$maswere." order by f.id, m.fecha";
+            $query = $this->db->query($prequery);
+            $data['cuenta'] = $query->num_rows();
+            $data['campos'] = $query->list_fields();
+            if ($data['pag'] === "x") {
+                $data['data'] = $query->result_array();
+                return $data;
+            }
+            $limites = " limit ".$data['pag'].", ".$data['rpp'];
+            $query = $this->db->query($prequery . $limites);
+            $data["data"] = $query->result();
+
+            return $data;
+        }
+
+        return $data;
+    }
+
+    public function cron() {
+        $query = $this->db->query("SELECT cl.*, f.id_campaign
+            FROM crm_light cl
+            JOIN form f ON f.id = id_form
+            WHERE cl.active = 1"
+        );
+        $ret = "Semáforos activos: " . $query->num_rows();
+        $crmSemRows = $query->result();
+        $tickact = 0;
+        //Consultamos los horarios de las campañas encontradas
+        $campaigns = [0];
+        foreach ($crmSemRows as $form) {
+            if( $form->campaign_hours == 1 )
+                $campaigns[] = $form->id_campaign;
+        }
+        $campaigns = array_unique($campaigns);
+        $campaigns = implode(',', $campaigns);
+        //Consultamos los horarios de las campañas que tienen formularios con semaforo activo
+        $horarios = $this->db->query('SELECT * FROM campaign_hour WHERE id_campaign IN ('.$campaigns.')')->result();
+        //Se recorren todos los crm con semaforo activo que tengan activado el semaforo 
+        foreach ($crmSemRows as $crmsem) {
+            //Validamos que la tabla formd_# tenga el campo semaforo, de lo contrario se lo agregamos
+            if (!$this->db->field_exists('semaforo', 'formd_' . $crmsem->id_form)) {
+                $data = array('id_form'=>$crmsem->id_form, 'type'=>'text', 'name'=>'Semáforo',
+                    'values'=>'', 'depend'=>'0', 'order'=>'0');
+                $this->load->model("form_model");
+                $this->form_model->createc($data);
+                echo "CRM no tenía campo semáforo, agregado.\n";
+            }
+            $query2 = $this->db->query("SELECT lf.*, u.user AS infoamail,
+                TIMESTAMPDIFF(MINUTE, lf.apertura, NOW()) AS antiq FROM formd_" . $crmsem->id_form .
+                " AS lf LEFT JOIN user u ON u.id = lf.asignar_a
+                WHERE lf.cierre IS NULL AND lf.asignar_a > 0 AND lf.asignar_a IS NOT NULL");
+            $tickact += $query2->num_rows();
+            $tickets = $query2->result();
+            foreach ($tickets as $ticket) {
+                if( $crmsem->campaign_hours == 1 ) {
+                    $minutos = $this->calc_campaign_hours($crmsem, $ticket, $horarios);
+                    $ticket->antiq = $minutos;
+                }
+                //Si, tiempo a naranja existe y ticket->semaforo esta en blanco
+                if ($crmsem->time_to_warn >= 1 && empty($ticket->semaforo) && $ticket->antiq >= $crmsem->time_to_warn &&
+                    $ticket->antiq < $crmsem->time_to_red) {
+                    $this->db->query("UPDATE formd_" . $crmsem->id_form . " SET semaforo = 'amarillo' WHERE id = '" .
+                        $ticket->id . "'");
+                    if ($crmsem->notify_warn) {
+                        $this->pasasem($ticket, $crmsem, "amarillo");
+                    }
+                } elseif ($ticket->semaforo != "rojo" && $crmsem->time_to_red >= 1
+                    && $ticket->antiq >= $crmsem->time_to_red) {
+                    $this->pasasem($ticket, $crmsem, "rojo");
+                }
+                if ( $ticket->antiq > 0
+                    && $crmsem->time_to_step >= 1
+                    && abs($ticket->antiq - $crmsem->time_to_red) > 5
+                    && abs($ticket->antiq - $crmsem->time_to_warn) > 5
+                    && $crmsem->notify_step == 1
+                    && ($crmsem->notify_step_after_red == 0 || $ticket->antiq > $crmsem->time_to_red)
+                    && fmod($ticket->antiq, $crmsem->time_to_step) == 0) {
+                    $this->notisem($ticket, $crmsem->id_form, $crmsem->msg_step);
+                }
+            }
+        }
+        $ret .= ", Tickets activos: " . $tickact;
+
+        return $ret;
+    }
+
+    public function calc_campaign_hours($crm, $ticket, $horarios = []) {
+        $apertura = $ticket->apertura;
+        $now = date('Y-m-d H:i:s');
+        // Inicializamos el tiempo total en minutos en 0
+        $totalMin = 0;
+        // Convertimos las fechas de apertura y now a objetos de tiempo
+        $DTFechaApertura = new DateTime($apertura);
+        $DTFechaNow = new DateTime($now);
+        // Iteramos desde la fecha de apertura hasta la fecha actual
+        $DTCurrentDay = clone $DTFechaApertura;
+        while ($DTCurrentDay <= $DTFechaNow) {
+            $diaSemana = intval($DTCurrentDay->format('w')) + 1;//día de la semana de la fecha actual (0 para domingo, 6 para sabado)
+            //Obtenemos el Horario de esa fecha
+            $horario_actual = false;
+            foreach ($horarios as $row) {
+                if ($row->dia == $diaSemana && $row->id_campaign == $crm->id_campaign) {
+                    $horario_actual = $row;
+                    break;
+                }
+            }
+            //Si tiene fecha de inicio y fecha de fin, entonces es dia laboral, calcularemos el tiempo transcurrido en ese dia
+            $hora_ini = false;
+            $hora_fin = false;
+            //Existe un horario
+            if( $horario_actual !== false && !empty($horario_actual->inicio) && !empty($horario_actual->fin) ) {
+                //CALCULAMOS LA HORA DE FIN
+                if( $DTCurrentDay->format('Y-m-d') == $DTFechaNow->format('Y-m-d') ) {//Entonces evaluaremos hasta donde finalizar
+                    $DTCurrentDayHorarioFin = new DateTime( $DTCurrentDay->format('Y-m-d').' '.$horario_actual->fin );
+                    if ( $DTFechaNow > $DTCurrentDayHorarioFin ) {
+                        $hora_fin = $horario_actual->fin;
+                    } else {
+                        $hora_fin = $DTFechaNow->format('H:i:s');
+                    }
+                } else {
+                    $hora_fin = $horario_actual->fin;
+                }
+                //CALCULAMOS LA HORA DE INICIO
+                if( $DTFechaApertura->format('Y-m-d') == $DTCurrentDay->format('Y-m-d') ) {//Entonces evaluaremos desde donde iniciar
+                    $DTCurrentDayHorarioIni = new DateTime( $DTCurrentDay->format('Y-m-d').' '.$horario_actual->inicio );
+                    if( $DTFechaApertura > $DTCurrentDayHorarioIni ) {
+                        $hora_ini = $DTFechaApertura->format('H:i:s');
+                    } else {
+                        $hora_ini = $horario_actual->inicio;
+                    }
+                } else {
+                    $hora_ini = $horario_actual->inicio;
+                }
+            }
+            //En caso de que haya un fecha de inicio y una de fin para ese día, procedemos con el calculo
+            $diferencia = null;
+            $minutosDia = 0;
+            if( $hora_ini !== false && $hora_fin !== false) {//Calculamos el tiempo de ese dia
+                $DTFechaI = new DateTime($DTCurrentDay->format('Y-m-d').' '.$hora_ini);
+                $DTFechaF = new DateTime($DTCurrentDay->format('Y-m-d').' '.$hora_fin);
+                if( $DTFechaI < $DTFechaF ) {
+                    $diferencia = $DTFechaI->diff($DTFechaF);
+                    $minutosDia = ($diferencia->i)+($diferencia->h * 60);
+                    $totalMin = $totalMin + $minutosDia;
+                }
+            }
+            //Incrementamos un día
+            $DTCurrentDay->modify('+1 day');
+            $DTCurrentDay->setTime(0, 0, 0);
+        }
+
+        return $totalMin;
+    }
+
+    private function pasasem(stdClass $ticket, stdClass $sem, string $target) {
+        echo "Ticket " . $ticket->id . " pasa a " . $target;
+        $this->db->query("UPDATE formd_" . $sem->id_form . " SET semaforo = '$target' WHERE id = '$ticket->id'");
+        if ($target == "amarillo") {
+            $not = $sem->notify_warn;
+            $msg = $sem->msg_warn;
+        } elseif ($target == "rojo") {
+            $not = $sem->notify_red;
+            $msg = $sem->msg_red;
+        } else {
+            return;
+        }
+        if (!empty($not) && !empty($msg) && !empty($ticket->infoamail)) {
+            $this->notisem($ticket, $sem->id_form, $msg);
+        }
+    }
+
+    private function notisem(stdClass $ticket, int $fid, string $msg) {
+        echo "Ticket " . $ticket->id . " del formulario " . $fid . " por notificar " . $msg;
+        $data = ["id"=>$ticket->id, "fid"=>$fid, "enviara"=>[$ticket->infoamail], "adi"=>$msg];
+        $this->informar($data);
+    }
+
+    public function actualizarCuentaEmail($data) {
+        $IdEmailCount = null;
+        if( !empty($data['id_email_account']) && $data['id_email_account'] != "" && $data['id_email_account'] > 0 ) $IdEmailCount = $data['id_email_account'];
+        return $this->db->query("UPDATE `form` set `id_email_account` = ? where `id` = ?",
+            array($IdEmailCount, $data['id']));
+    }
+
+    function onUpdAction($action, $data, $ticket) {
+        $api = $this->db->query("SELECT * FROM extapi WHERE id = ?", $action->id_extapi)->row();
+        $apiinfo = json_decode($api->info);
+        $endpoint = $action->endpoint;
+        // si endpoint tiene llaves {}, las reemplaza por los valores de info
+        if (strpos($endpoint, '{') !== false) {
+            foreach ($apiinfo as $key => $value) {
+                $endpoint = str_replace("{".$key."}", $value, $endpoint);
+            }
+        }
+        // Si endpoint sigue teniendo llaves, se reemplaza por el valor en data
+        if (strpos($endpoint, '{') !== false) {
+            foreach ($data as $key => $value) {
+                $endpoint = str_replace("{".$key."}", $value, $endpoint);
+            }
+        }
+        // Si endpoint sigue teniendo llaves, se reemplaza por el valor en ticket
+        if (strpos($endpoint, '{') !== false) {
+            foreach ($ticket as $key => $value) {
+                $endpoint = str_replace("{".$key."}", $value, $endpoint);
+            }
+        }
+        if (strpos($endpoint, '{') !== false) {
+            $this->db->query("INSERT INTO bago_log (`evento`, `data`, `fecha`) VALUES (?,?,NOW())",
+                ["onUpdAction error", "Endpoint no se pudo completar: " . $endpoint]);
+            return false;
+        }
+        $mod = json_decode($action->map_out_data);
+        foreach ($mod as $key => $value) {
+            $partes = explode(".", $value);
+            $sec   = $partes[0];
+            $parte = $partes[1];
+            $cat   = (!empty($partes[2])) ? $partes[2] : "";
+            $field = (!empty($partes[3])) ? $partes[3] : "";
+            $tosend[$key] = "";
+            if ($parte=="cats") {
+                $rows = $this->db->query("SELECT * FROM formd_" . $data->id_form . "_cats WHERE field = ?", $field)->result();
+                foreach ($rows as $row) {
+                    if ($row->eti == $data->$cat) {
+                        $tosend[$key] = $row->val;
+                        break;
+                    }
+                }
+            } else if (!empty($$sec->$parte)) {
+                $tosend[$key] =  $$sec->$parte;
+            }
+        }
+        $reqarray = ["url"=>$api->url . $endpoint,"method"=>$action->proto];
+        if ($api->logloc == "0") {
+            $reqarray["heads"] = [$api->sign . ": " . $api->token];
+        } else if ($api->loglog == "1") {
+            $tosend[$api->sign] = $api->token;
+        }
+        if ($api->valid_crt == "0") {
+            $reqarray["nossl"] = true;
+        }
+        $reqarray["body"] = $tosend;
+        $this->db->query("INSERT INTO bago_log (`evento`, `data`, `fecha`) VALUES (?,?,NOW())", ["onUpdAction request", json_encode($reqarray)]);
+        $res = doReq($reqarray);
+        $this->db->query("INSERT INTO bago_log (`evento`, `data`, `fecha`) VALUES (?,?,NOW())", ["onUpdAction response", json_encode($res)]);
+
+        return true;
+    }
+
+    function consumeApiEndpoint($action, $data, $ticket) {
+        // $action es el registro de la tabla form_api
+        // $data es todo lo que viene desde el front y datos procesados
+        $api = $this->db->query("SELECT * FROM extapi WHERE id = ?", $action->id_extapi)->row();
+        $apiinfo = json_decode($api->info);
+        $endpoint = $action->endpoint;
+        // si endpoint tiene llaves {}, las reemplaza por los valores de info
+        if (strpos($endpoint, '{') !== false) {
+            foreach ($apiinfo as $key => $value) {
+                $endpoint = str_replace("{".$key."}", $value, $endpoint);
+            }
+        }
+        // Si endpoint sigue teniendo llaves, se reemplaza por el valor en data
+        if (strpos($endpoint, '{') !== false) {
+            foreach ($data as $key => $value) {
+                $endpoint = str_replace("{".$key."}", $value, $endpoint);
+            }
+        }
+        // Después tocará ponerle etiquetas al contenido si es necesario, por lo pronto sólo será el query especial
+        if ($action->extra != "") {
+            $query = $this->db->query($action->extra, [$ticket->id]);
+            if (!$query) {
+                debug_log(__FILE__ . " " . __LINE__, $action->extra . " - " . $this->db->error());
+                return false;
+            }
+            $ticket = $query->row();
+        }
+        // Si endpoint sigue teniendo llaves, se reemplaza por el valor en ticket
+        if (strpos($endpoint, '{') !== false) {
+            foreach ($ticket as $key => $value) {
+                $endpoint = str_replace("{".$key."}", $value, $endpoint);
+            }
+        }
+        if (strpos($endpoint, '{') !== false) {
+            $this->db->query("INSERT INTO bago_log (`evento`, `data`, `fecha`) VALUES (?,?,NOW())",
+                ["consumeApiEndpoint error", "Endpoint no se pudo completar: " . $endpoint]);
+            return false;
+        }
+        $mod = json_decode($action->map_out_data, true);
+        if (!empty($mod["xxparcialxx"])) {
+            $nuevomod = $mod;
+            unset($nuevomod["xxparcialxx"]);
+            $query = $this->db->query("SELECT * FROM formd_" . $data->id_form . "_cc WHERE id_formd = ? AND status = '0'", [$ticket->id]);
+            $cats  = ["asignar_a"=>"r_asignado", "id_cliente"=>"r_cliente", "id_user"=>"r_agente"];
+            foreach ($query->result() as $valor) {
+                foreach ($mod["xxparcialxx"] as $mok => $mov) {
+                    if ($mov == "ticket.".$valor->field || (array_key_exists($valor->field, $cats) && $mov == "ticket.".$cats[$valor->field])) {
+                        $nuevomod[$mok] = $mov;
+                    }
+                }
+            }
+            $tosend = $this->ponvalores($nuevomod, $data, $ticket, $apiinfo);
+            $this->db->query("UPDATE formd_" . $data->id_form . "_cc SET status = 1 WHERE id_formd = ? AND status = '0'", [$ticket->id]);
+        } else {
+            $tosend = $this->ponvalores($mod, $data, $ticket, $apiinfo);
+        }
+        $proto = $action->data_type ?? "json";
+        $reqarray = ["url"=>$api->url . $endpoint,"method"=>$action->proto,"proto"=>$proto];
+        if ($api->logloc == "0") {
+            $reqarray["heads"] = [$api->sign . ": " . $api->token];
+        } else if ($api->logloc == "1") {
+            $tosend[$api->sign] = $api->token;
+        }
+        if ($api->valid_crt == "0") {
+            $reqarray["nossl"] = true;
+        }
+        $reqarray["body"] = $tosend;
+        $this->db->query("INSERT INTO bago_log (`evento`, `data`, `fecha`) VALUES (?,?,NOW())", ["consumeApiEndpoint request", json_encode($reqarray)]);
+        $res = doReq($reqarray);
+        $this->db->query("INSERT INTO bago_log (`evento`, `data`, `fecha`) VALUES (?,?,NOW())", ["consumeApiEndpoint response", json_encode($res)]);
+        // ToDo: queda mucho por hacer, validar y transformar, por el momento queda para ploomes, hay que generalizar ésto
+        if (!empty($action->map_in_data) && $res['code'] == 200) {
+            $toupd = "";
+            $mod = json_decode($action->map_in_data, true);
+            $rdata = json_decode($res['data'], true);
+            foreach ($mod as $key => $value) {
+                if ($this->db->field_exists($key, 'formd_' . $data->id_form)) {
+                    if (strpos($value, ".") === false) {
+                        $toupd .= $key . " = '" . $res[$value] . "', ";
+                    } else {
+                        // falta tomar en cuenta otras tablas y otros campos, tal vez divididas con puntos y por posición
+                        list($sec, $campo) = explode(".", $value);
+                        $toupd .= $key . " = '" . $rdata[$campo] . "', ";
+                    }
+                }
+            }
+            $toupd = substr($toupd, 0, -2);
+            $this->db->query("UPDATE formd_" . $data->id_form . " SET " . $toupd . " WHERE id = ?", [$ticket->id]);
+        }
+
+        return true;
+    }
+
+    private function ponvalores($mod, $data, $ticket, $apiinfo) {
+        // Para concatenar valores uso el signo de +
+        // Exploto la cadena en partes divididar por el + y valido cada parte
+        // Si la parte tiene un punto, es un campo calculado, si no, es un valor fijo
+        $ret = [];
+        foreach ($mod as $key => $value) {
+            if (is_object($mod[$key]) || is_array($mod[$key])) {
+                $ret[$key] = $this->ponvalores((array)$mod[$key], $data, $ticket, $apiinfo);
+            } else {
+                $elems = explode("+", $value);
+                $ret[$key] = "";
+                foreach ($elems as $elem) {
+                    if (strpos($elem, ".") !== false) {
+                        $partes = explode(".", $elem);
+                        $sec    = $partes[0];
+                        $parte  = $partes[1];
+                        $cat    = (!empty($partes[2])) ? $partes[2] : "";
+                        $field  = (!empty($partes[3])) ? $partes[3] : "";
+                        if ($parte=="cats") {
+                            $rows = $this->db->query("SELECT * FROM formd_" . $data->id_form . "_cats WHERE field = ?", $field)->result();
+                            foreach ($rows as $row) {
+                                if ($row->eti == $data->$cat) {
+                                    $ret[$key] .= $row->val;
+                                    break;
+                                }
+                            }
+                        } else if (!empty($$sec->$parte)) {
+                            $ret[$key] .= $$sec->$parte;
+                        }
+                    } else {
+                        $ret[$key] .= $elem;
+                    }
+                }
+            }
+        }
+
+        return $ret;
+    }
+
+}

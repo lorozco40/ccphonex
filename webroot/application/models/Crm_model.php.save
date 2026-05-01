@@ -1,0 +1,420 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Crm_model extends CI_Model
+{
+
+    private $dtfor;
+
+    public function __construct() {
+        parent::__construct();
+        $sispar      = $this->datos_model->getParams("sistema");
+        $this->dtfor = $sispar->FormatoFechaMysql;
+    }
+
+    public function crear(array $data = null) {
+        $this->load->model("form_model");
+        $fid = $this->form_model->create($data, 1);
+        if ($fid && $this->addCrmFields($fid)) {
+            redirect('form/campos/'.$fid);
+        } else {
+            $this->session->set_flashdata('errormsg', 'No se crea el CRM');
+            redirect('crm/admin');
+        }
+    }
+
+    function croninformar() {
+        $query = $this->db->query("SELECT * FROM `ticket_eventos` WHERE `nivel` = 0");
+        foreach ($query->result() as $row) {
+            $this->informar(['fid'=>$row->id_grupo, 'id'=>$row->id_ticket, 'pid'=>0]);
+        }
+        $this->db->query("UPDATE `ticket_eventos` SET `nivel` = 1 WHERE `nivel` = 0");
+
+        return true;
+    }
+
+    public function addCrmFields(int $fid = null) {
+        if (empty($fid)) return false;
+        $this->load->model("form_model");
+        $data = array('id_form'=>$fid, 'type'=>'textarea', 'name'=>'Detalle', 'required'=>1, 'base'=>1, 'api'=>1);
+        $this->form_model->createc($data);
+        $data = array('id_form'=>$fid, 'type'=>'dropdown', 'len'=>32, 'name'=>'Tipo', 'order'=>1, 'base'=>1, 'api'=>1, 'values'=>'Evento,Incidente,Requerimiento,Queja');
+        $this->form_model->createc($data);
+        $data = array('id_form'=>$fid, 'type'=>'dropdown', 'len'=>32, 'name'=>'Prioridad', 'order'=>2, 'base'=>1, 'api'=>1, 'values'=>'Media,Baja,Alta');
+        $this->form_model->createc($data);
+        $data = array('id_form'=>$fid, 'type'=>'datetime', 'name'=>'Cierre', 'editable'=>0, 'base'=>1);
+        $this->form_model->createc($data);
+        $data = array('id_form'=>$fid, 'type'=>'dropdown', 'name'=>'Cliente', 'slug'=>'id_cliente', 'values'=>'client', 'required'=>1, 'base'=>1, 'api'=>1);
+        $this->form_model->createc($data);
+        $data = array('id_form'=>$fid, 'type'=>'dropdown', 'name'=>'Asignar a', 'values'=>'user', 'base'=>1, 'api'=>1);
+        $this->form_model->createc($data);
+        $data = array('id_form'=>$fid, 'type'=>'text', 'name'=>'Informar', 'base'=>1, 'api'=>1);
+        $this->form_model->createc($data);
+        $data = array('id_form'=>$fid, 'type'=>'text', 'len'=>32, 'name'=>'Estatus', 'editable'=>0, 'base'=>1);
+        $this->form_model->createc($data);
+        $data = array('id_form'=>$fid, 'type'=>'text', 'name'=>'Semáforo', 'editable'=>0, 'base'=>1, 'front'=>0);
+        $this->form_model->createc($data);
+
+        return $this->crmtable($fid);
+    }
+
+    public function crmtable($idForm) {
+        if (!is_numeric($idForm)) return false;
+        // ToDo: Crear ésta tabla sólo si es necesario, validado por usuario administrador
+        $this->db->query("CREATE TABLE `formd_".$idForm."_file` (
+            `id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            `id_formd` int(11) NOT NULL,
+            `id_user` int(11) NOT NULL,
+            `fecha` datetime NOT NULL,
+            `name` text NOT NULL,
+            `filename` varchar(50) NOT NULL,
+            FOREIGN KEY (`id_formd`) REFERENCES `formd_".$idForm."` (`id`),
+            FOREIGN KEY (`id_user`) REFERENCES `user` (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        // ToDo: Crear ésta tabla sólo si es necesario, validado por usuario administrador
+        $this->db->query("CREATE TABLE `formd_".$idForm."_cats` (
+            `id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            `field` varchar(16) NOT NULL,
+            `parent` varchar(16) NOT NULL,
+            `eti` varchar(64) NOT NULL,
+            `val` varchar(254) NOT NULL,
+            `seq` tinyint(2) NOT NULL,
+            UNIQUE KEY `field_val` (`field`,`val`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $this->db->query("UPDATE `form` set `crm`=1 where id = ?", [$idForm]);
+        return $this->db->query("CREATE TABLE `formd_".$idForm."_crm` (
+            `id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            `id_formd` int(11) NOT NULL,
+            `id_user` int(11) NOT NULL,
+            `uniqueid` varchar(64) NOT NULL,
+            `linkedid` varchar(64) NOT NULL,
+            `fecha` datetime NOT NULL,
+            `comentario` text NOT NULL,
+            `estatus` varchar(50) NOT NULL,
+            FOREIGN KEY (`id_formd`) REFERENCES `formd_".$idForm."` (`id`),
+            FOREIGN KEY (`id_user`) REFERENCES `user` (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    }
+
+    public function guardar() {
+        $req = $this->input->post();
+        $json = json_decode($req['jsonData']);
+        $data = [];
+        $now  = date("Y-m-d H:i:s"); 
+        // Datos del Ticket
+        foreach ($json->ticket as $val) {
+            $data[$val->name] = $val->value;
+        }
+        // Array de los campos que fueron actualizados de las tablas relacionales
+        $tbr_update = [];
+        if (isset($json->tbr->to_update)) {
+            foreach ($json->tbr->to_update as $tbrid => $row) {
+                $tbr_update[$tbrid] = [];
+                foreach ($row as $reg) {
+                    $tbr_update[$tbrid][] = $reg;
+                }
+            }
+        }
+        // Datos apilables tabla relacionada
+        $tbr = [];
+        if (isset($json->tbr->data)) {
+            foreach ($json->tbr->data as $tbrid => $row) {
+                $obj_tbr_update = isset($tbr_update[$tbrid]) ? $tbr_update[$tbrid] : []; 
+                $props_tbr = $this->get_props_tbr($tbrid);
+                $tbr[$tbrid] = [];
+                foreach ($row as $index=>$reg) {
+                    $addreg = [];
+                    foreach ($reg as $campo) {
+                        $prop = ( isset($props_tbr[$campo->name]) ) ? $props_tbr[$campo->name] : null;
+                        if( isset($prop->type) &&  $prop->type == 'datetime_pdf') {
+                            //Este campo no puede ser manipulado por el usuario
+                        } else if( isset($prop->type) && $prop->type == 'datetime_pdf_update' ) {
+                            //De este mismo renglon en curso, obtendremos el name y value del campo datetime_pdf
+                            $aux_slug   = str_replace('_update', '', $prop->slug);
+                            $indice     = array_search($aux_slug, array_column($row[$index], 'name'));
+                            $indice_id  = array_search('id', array_column($row[$index], 'name'));
+                            if( $indice !== false ) {
+                                if( isset($row[$index][$indice]->value) && $row[$index][$indice]->value != NULL ) {
+                                    // Ya hay una fecha de envio de pdf, siginifica que si ese campo se modifica, debera ser actualizado
+                                    if( $campo->value == NULL ) {
+                                        //Validamos si el campo fue modificado
+                                        if( in_array($row[$index][$indice_id]->value, $obj_tbr_update) ) {
+                                            $addreg[$campo->name] = $now;
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            $addreg[$campo->name] = $campo->value;
+                        }
+                    }
+                    $tbr[$tbrid][] = $addreg;
+                }
+            }
+        }
+        // Datos apilables a borrar de tablas relacionadas
+        $tbrdel = [];
+        if (isset($json->tbr->to_delete)) {
+            foreach ($json->tbr->to_delete as $tbrid => $row) {
+                $tbrdel[$tbrid] = [];
+                foreach ($row as $reg) {
+                    $tbrdel[$tbrid][] = $reg;
+                }
+            }
+        }
+        $ret = ['status' => 'danger', 'msg' => 'CRM incorrecto'];
+        if (!empty($data['id_form'])) {
+            $resTicket = $this->guardaTicket($data);
+            if ($resTicket['status'] == 'success') {
+                if (!empty($tbr) || !empty($tbrdel)) {
+                    $tabstbr = $this->tabsTbr($resTicket['form'], $resTicket['campos']);
+                }
+                if (!empty($tbr)) {
+                    $id_ticket = ( isset($resTicket['id'] ) ? $resTicket['id'] : $data['id']);
+                    $this->guardaTbr($tabstbr, $tbr, $id_ticket);
+                }
+                if (!empty($tbrdel)) {
+                    $this->borraTbr($tabstbr, $tbrdel);
+                }
+                if(isset($resTicket['proceso']) && $resTicket['proceso'] == 'insert') {
+                    $pid    = (empty($data['pl4n71ll4'])) ? 0 : $data['pl4n71ll4'];
+                    $infrmr = $this->informar(['fid'=>$data['id_form'], 'id'=>$resTicket['id'], 'pid'=>$pid, 'proceso'=>$resTicket['proceso']]);
+                    $resTicket['infrmr'] = $infrmr;
+                }
+            }
+            unset($resTicket['form']);
+            unset($resTicket['campos']);
+            $ret = $resTicket;
+        }
+
+        return $ret;
+    }
+
+    // Obtiene la lista de los campos y sus propiedades de una TBR con el slug como indice
+    public function get_props_tbr($tbrid) {
+        $rows = $this->db->query('SELECT *
+        FROM form_fields_tbr
+        WHERE id_form_fields = ?
+        ORDER BY `order` ASC, id ASC', [$tbrid])->result();
+        $resp = [];
+        foreach( $rows as $row ) {
+            $resp[$row->slug] = $row;
+        }
+
+        return $resp;
+    }
+
+    // Obtiene el nombre de las tables TBRs
+    private function tabsTbr($crm, $campos) {
+        $tablas = [];
+        foreach ($campos as $campo) {
+            if ($campo->descen == 'ttbbrr') {
+                $tablas[$campo->id] = 'formd_' . $crm->id . '_tb' . $campo->depend;
+            }
+        }
+
+        return $tablas;
+    }
+
+    private function guardaTicket($data) {
+        $query   = $this->db->query("SELECT * from form where id='".$data['id_form']."'");
+        $form    = $query->row();
+        $query   = $this->db->query("SELECT * from form_fields where id_form='".$data['id_form']."'");
+        $campos  = $query->result();
+        $ret     = ["form"=>$form,"campos"=>$campos];
+        $pret    = ['status' => 'error', 'msg' => 'Sin datos de CRM'];
+        $id_user = $this->session->userdata('uid');
+        if (empty($data['id']) || $data['id'] == '-') {
+            // Ticket nuevo
+            $qcam = "`id_user`, `uniqueid`, `estatus`, `apertura`, `cierre`";
+            $qdef = "?, ?, 'Abierto', now(), NULL";
+            $qval = array($id_user, $data['uniqueid']);
+            $noaddbyname = ['apertura','cierre','estatus','semaforo','id_user','uniqueid'];
+            $noaddbytype = ['separador','tabla'];
+            foreach ($campos as $campo) {
+                if (!in_array($campo->slug, $noaddbyname) && !in_array($campo->type, $noaddbytype)) {
+                    $qcam .= ", `".$campo->slug."`";
+                    if ($campo->type == 'checkbox') {
+                        $qdef .= isset($data[$campo->slug]) ? ",'1'" : ",'0'";
+                    } elseif ($campo->slug == 'creacion' || $campo->slug == 'fecha_contacto') {
+                        $qdef .= ",now()";
+                    } elseif ($campo->type == 'datetime') {
+                        $qdef .= (!empty($data[$campo->slug])) ? ",'".$data[$campo->slug]."'" : ",NULL";
+                    } else {
+                        $qdef .= ",?";
+                        $qval[] = (isset($data[$campo->slug])) ? $data[$campo->slug] : "";
+                    }
+                }
+            }
+            if ($this->db->query("INSERT into `formd_".$data['id_form']."` ($qcam) values ($qdef)", $qval)) {
+                $id = $this->db->insert_id();
+                if ($this->db->table_exists('formd_'.$data['id_form']."_ccold")) {
+                    $this->db->query("INSERT into `formd_".$data['id_form']."_ccold` select * from `formd_".$data['id_form']."` where id = ?", [$id]);
+                }
+                $cali = $this->db->query("INSERT into `formd_".$data['id_form']."_crm` (`id_formd`, `id_user`, `uniqueid`, `fecha`, `comentario`, `estatus`)
+                    values ('$id','$id_user','".$data['uniqueid']."',now(), 'Ticket creado', 'Abierto')"
+                );
+                if ($cali) {
+                    $ticket = $this->db->query("SELECT t.*, concat(a.name, ' ', a.last) AS 'r_agente',
+                        concat(s.name, ' ', s.last) AS 'r_asignado', concat(c.name, ' ', c.last) AS 'r_cliente'
+                        FROM formd_" . $data['id_form'] . " t
+                        LEFT JOIN user a ON t.id_user = a.id
+                        LEFT JOIN user s ON t.asignar_a = s.id
+                        LEFT JOIN client c ON t.id_cliente = c.id
+                        WHERE t.id = ?", [$id])->row();
+                    $query = $this->db->query("SELECT * FROM `form_api` WHERE `id_form` = ? AND on_when = 1 AND active = 1", [$data['id_form']]);
+                    foreach ($query->result() as $accion) {
+                        // on_when: 0 show, 1 open, 2 upd, 3 close, 4 human, 5 file, 6 img
+                        $this->consumeApiEndpoint($accion, (object)$data, $ticket);
+                    }
+                }
+                $crmhisto = $this->getCrmHisto($data['id_form'], $id);
+                // status ok/error, tipo nuevo/actu,
+                $pret = array(
+                    'status'  => 'success',
+                    'proceso' => 'insert',
+                    'histo'   => $crmhisto,
+                    'files'   => '',
+                    'id'      => $id,
+                    'tipo'    => 'nuevo',
+                    'now'     => date("Y-m-d h:i:s"),
+                    'msg'     => 'Registro creado con el id '.$id,
+                );
+            } else {
+                $pret = array(
+                    'status' => 'error',
+                    'msg'    => 'Error al guardar en la base de datos.'
+                );
+            }
+        } else {
+            // Actualizar ticket
+            $loset = '';
+            $values = [];
+            $noaddbyname = ["id", "apertura", "cierre", "estatus", "semaforo", "id_user", "uniqueid", "linkedid"];
+            $noaddbytype = ['separador','tabla','datetime_pdf','datetime_pdf_update','boton'];
+
+            foreach ($campos as $campo) {
+                // Omitir slugs no modificables
+                if (!in_array($campo->slug, $noaddbyname) && !in_array($campo->type, $noaddbytype)) {
+                    if ((isset($data[$campo->slug]) || $campo->type == 'checkbox') && $campo->editable == 1) {
+                        $loset .= "`$campo->slug`= ?,";
+                        if ($campo->type == 'checkbox') {
+                            $values[] = (isset($data[$campo->slug])) ? 1 : 0;
+                        } elseif ($campo->type == 'datetime') {
+                            $values[] = (!empty($data[$campo->slug])) ? $data[$campo->slug] : NULL;
+                        } else {
+                            $values[] = $data[$campo->slug];
+                        }
+                    }
+                }
+            }
+            $loset = rtrim($loset, ", ");
+            $sql = "UPDATE `formd_".$data['id_form']."` SET $loset WHERE id = '".$data['id']."'";
+            $upd = $this->db->query($sql, $values);
+            if ($upd) {
+                $pret = array(
+                    'status'  => 'success',
+                    'proceso' => 'update',
+                    'id'      => $data['id'],
+                    'msg'     => 'Datos de Ticket actualizados.'
+                );
+            } else {
+                $pret = array(
+                    'status' => 'error',
+                    'msg'    => 'Datos inconsistentes en el ticket.'
+                );
+            }
+        }
+
+        return array_merge($ret, $pret);
+    }
+
+    private function guardaTbr($tablas, $tbr, $tid) {
+        foreach ($tbr as $key => $tabregs) {
+            $inserts = [];
+            foreach ($tabregs as $reg) {
+                if($reg['id']==0) {
+                    $reg['id_formd'] = $tid;
+                    $inserts[] = $reg;
+                } else {
+                    $id = $reg['id'];
+                    unset($reg['id']);
+                    $this->db->update($tablas[$key], $reg, "id = $id");
+                }
+            }
+            if (!empty($inserts)){
+                $this->db->insert_batch($tablas[$key], $inserts);
+            }
+        }
+
+        return true;
+    }
+
+    private function borraTbr($tablas, $tbrdel) {
+        foreach ($tbrdel as $key => $tabregs) {
+            $delids = [];
+            foreach ($tabregs as $reg) {
+                $delids[] = $reg;
+            }
+            if (!empty($delids)){
+                $this->db->where_in('id', $delids);
+                $this->db->delete($tablas[$key]);
+            }
+        }
+
+        return true;
+    }
+
+    public function savesem() {
+        $data = $this->input->post();
+        $retipo = 'error';
+        $ret    = 'Información incorrecta o incompleta';
+        if (empty($data['fid'])) {
+            return ['tipo'=>$retipo, 'msg'=>$ret];
+        }
+        $campaign_hours = ($data['campaign_hours'] == 1) ? 1 : 0;
+        $active = (empty($data['active'])) ? 0 : 1;
+        $notifyWarn = (empty($data['notify_warn'])) ? 0 : 1;
+        $notifyRed = (empty($data['notify_red'])) ? 0 : 1;
+        $notifyStep = (empty($data['notify_step'])) ? 0 : 1;
+        $notifyStepAfterRed = (empty($data['notify_step_after_red'])) ? 0 : 1;
+        $save   = false;
+        if (is_numeric($data['time_to_warn']) && is_numeric($data['time_to_red']) && is_numeric($data['time_to_step']) &&
+            !empty($data['msg_warn']) && !empty($data['msg_red']) && !empty($data['msg_step'])) {
+            $save = true;
+        }
+        if ($save) {
+            $query = $this->db->query("UPDATE crm_light set time_to_red = ?, msg_red = ?, notify_red = ?,
+                time_to_warn = ?, msg_warn = ?, notify_warn = ?,
+                time_to_step = ?, msg_step = ?, notify_step = ?, notify_step_after_red = ?, campaign_hours = ?,
+                active = ? WHERE id_form = ?", [$data['time_to_red'], $data['msg_red'], $notifyRed,
+                $data['time_to_warn'], $data['msg_warn'], $notifyWarn,
+                $data['time_to_step'], $data['msg_step'], $notifyStep,
+                $notifyStepAfterRed, $campaign_hours, $active, $data['fid']]);
+            if ($query) {
+                $retipo = 'msg';
+                $ret = 'Datos de semáforo actualizados';
+            } else {
+                $ret = $this->db->error();
+            }
+        }
+
+        return ['tipo'=>$retipo, 'msg'=>$ret];
+    }
+
+    public function guardarcali() {
+        $data  = $this->input->post();
+        $pid   = (empty($data['pl4n71ll4'])) ? 0 : $data['pl4n71ll4'];
+        $form  = $this->db->query("SELECT * from form where id = ?", [$data['id_form']])->row();
+        $query = $this->db->query("SELECT * FROM `formd_".$data['id_form']."` WHERE `id` = ?", [$data['id']]);
+        $toact = $query->row();
+        if (isset($toact->estatus) && $toact->estatus == 'Cerrado') {
+            return array('status' => 'danger', 'msg' => 'Estatus cerrado, reabrir para continuar.');
+        }
+        $uid   = $this->session->userdata('uid');
+        $uname = trim($this->udata['name'].' '.$this->udata['last']);
+        if (!empty($data['coment']) && !empty($data['status']) && !empty($data['id']) && !empty($data['id_form']) ) {
+            $this->db->query("INSERT INTO `formd_" . $data['id_form'] . "_crm`
+                (`id_formd`, `id_user`, `uniqueid`, `fecha`, `comentario`, `estatus`) VALUES
+                (?, '$uid', ?, now(), ?, ?)", [$data['id'], $data['uniqueid'], $data['coment'], $data['status']]);
+            if ($this->db->affected_rows() == 1) {

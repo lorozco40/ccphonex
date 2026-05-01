@@ -1,0 +1,6 @@
+.env
+*.crt
+*.key
+bago
+model
+query

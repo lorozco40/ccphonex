@@ -1,0 +1,10 @@
+<?php
+	$valores = [
+
+	              "53"=>[ // ID Campaña Inmuebles24
+	                  "1"=>["1"=>"Nada satisfecho","2"=>"Poco satisfecho","3"=>"Muy satisfecho"], // pregunta y opciones
+	                  "2"=>["1"=>"Nada satisfecho","2"=>"Poco satisfecho","3"=>"Muy satisfecho"], // pregunta y opciones
+	              ],
+
+	            ];
+?>

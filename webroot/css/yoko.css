@@ -1,0 +1,69 @@
+body {
+    color: #262626;
+}
+.frazul {
+    color: #092b47;
+}
+.foazul {
+    background-color: #092b47;
+}
+.frmorado {
+    color: #511229;
+}
+.fomorado {
+    background-color: #511229;
+}
+.framar {
+    color: #BF9B55;
+}
+.foamar {
+    background-color: #BF9B55;
+}
+.navbar-brand img {
+    height: 0;
+    width: 0;
+}
+.tab-content {
+    padding: 10px;
+}
+.navbar.bg-dark {
+    background-color: #511229 !important;
+}
+.nav-tabs .nav-link.active {
+    background-color: #511229 !important;
+    color: #FFFFFF !important;
+}
+.btn-secondary {
+    background-color: #511229;
+}
+.btn-primary {
+    background-color: #BF9B55;
+}
+#lostabos {
+    display: none;
+}
+/*******************************************************************************************************
+COMIENZAN ESTILOS DESPACHADOR MONITOREO
+*******************************************************************************************************/
+#monitoreo_despachador .card {
+    margin: 15px 15px 25px 15px;
+}
+#monitoreo_despachador .card-danger {
+    background-color: #fb6868d9;
+}
+#monitoreo_despachador .card-success {
+    background-color: #518e53d9;
+}
+#monitoreo_despachador .card-info {
+    background-color: #7197c7d9;
+}
+#monitoreo_despachador p {
+    margin: 0;
+    font-size: 1.5em;
+}
+#monitoreo_despachador .progress {
+    min-width: 10rem;
+}
+/*******************************************************************************************************
+TERMINAN ESTILOS DESPACHADOR MONITOREO
+*******************************************************************************************************/

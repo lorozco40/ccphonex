@@ -1,0 +1,1271 @@
+; This file contains example extensions_custom.conf entries.
+; extensions_custom.conf should be used to include customizations
+; to AMP's Asterisk dialplan.
+
+; Extensions in AMP have access to the 'from-internal' context.
+; The context 'from-internal-custom' is included in 'from-internal' by default
+
+[from-internal-custom]				
+exten => 1234,1,Playback(demo-congrats)		; extensions can dial 1234
+exten => 1234,2,Hangup()
+exten => h,1,Hangup()
+;include = toyota
+include = carlzeiss
+include = assertivec
+include = Provetecnia
+include = LaSalle
+include = bumeran
+include = playbusiness
+include = interlinked
+include = demo
+include = inmuebles24
+include = gyg
+include = vibe
+include = timely
+include = admsalud
+include = ingenieria-financiera
+;include = cintegra
+include = asimetrico
+include = reactivo
+include = amir
+include = topdata
+include = celixto
+include = segtec
+include = kyocera
+include = funerales
+include = consulta_sep
+include = pulpopay
+include = infomerida
+include = comercial
+include = revolverx
+include = clarodirecto
+
+[sistemas]
+
+exten => _ZXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=5553750000)
+same => n,Set(CALLERID(name)=${CALLERID(num)})
+same => n,Set(CALLERID(name)=Phonex)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Dial(SIP/Ask133/3312${EXTEN})
+same => n,Noop(Llamada colgada con causa ${HANGUPCAUSE} ${DIALSTATUS})
+same => n,Hangup(${HANGUPCAUSE})
+;
+exten => _001XX.,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525554205000)
+same => n,Set(CALLERID(name)=${CALLERID(num)})
+same => n,Set(CALLERID(name)=Phonex)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Dial(SIP/Ask133/9989${EXTEN:2})
+same => n,Noop(Llamada colgada con causa ${HANGUPCAUSE} ${DIALSTATUS})
+same => n,Hangup(${HANGUPCAUSE})
+;
+
+exten => _57X.,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525554205000)
+same => n,Set(CALLERID(name)=${CALLERID(num)})
+same => n,Set(CALLERID(name)=Phonex)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Dial(SIP/Ask133/9989${EXTEN})
+same => n,Noop(Llamada colgada con causa ${HANGUPCAUSE} ${DIALSTATUS})
+same => n,Hangup(${HANGUPCAUSE})
+
+;
+
+exten => _11XX,1,Answer()
+same => n,Goto(from-internal,${EXTEN},1)
+same => n,Hangup(${HANGUPCAUSE})
+
+exten => _129942,1,Voicemail(9001@default,u)
+
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+
+[carlzeiss]
+exten => _ZXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525556299855)
+same => n,Set(CALLERID(name)=CarlZeiss)
+same => n,Set(filename=${year}/${month}/${day}/s-0602-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+
+
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+
+[toyota]
+exten => _XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(filename=${year}/${month}/${day}/s-0150-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Set(CALLERID(num)=525553750150)
+same => n,Set(CALLERID(name)=Toyota)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+
+
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+
+[cintegra]
+exten => _XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+;same => n,Set(MusicOnHold(Integra))
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(filename=${year}/${month}/${day}/s-3003-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Set(CALLERID(num)=525556299829)
+same => n,Set(CALLERID(name)=Cintegra)
+same => n,Set(_dtmfmacro=${EXTEN})
+;same => n,Gosub(salida,s,1(${EXTEN}))
+same => n,Set(CHANNEL(Musicclass)=Integra)
+same => n,Dial(SIP/Ask133/9988${EXTEN},30,tm(Integra))
+same => n,Noop(Llamada colgada con causa ${HANGUPCAUSE} ${DIALSTATUS})
+same => n,Dial(SIP/Ask133/9988${EXTEN},30,tm(Integra))
+same => n,Noop(Llamada colgada con causa ${HANGUPCAUSE} ${DIALSTATUS})
+same => n,Hangup(${HANGUPCAUSE})
+
+exten => _10XX,1,Dial(PJSIP/${EXTEN})
+same => n,Hangup(${HANGUPCAUSE})
+
+exten => 123,1,NoOp()
+ same => n,Answer()
+ same => n,MusicOnHold(Integra)
+
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+
+[assertivec]
+exten => _XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525553750100)
+same => n,Set(CALLERID(name)=Assertive Conmutador)
+same => n,Set(filename=${year}/${month}/${day}/s-2942-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+;same => n,Gosub(salida,s,1(${EXTEN}))
+same => n,Dial(SIP/Ask133/9988${EXTEN},30,tm(Integra))
+same => n,Noop(Llamada colgada con causa ${HANGUPCAUSE} ${DIALSTATUS})
+same => n,Dial(SIP/Ask133/9988${EXTEN})
+same => n,Noop(Llamada colgada con causa ${HANGUPCAUSE} ${DIALSTATUS})
+same => n,Hangup(${HANGUPCAUSE})
+
+exten => _7XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525589427351)
+same => n,Set(CALLERID(name)=Assertive Ventas)
+same => n,Set(filename=${year}/${month}/${day}/s-2942-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN:1})
+;same => n,Gosub(salida,s,1(${EXTEN:1}))
+same => n,Dial(SIP/Ask133/9988${EXTEN:1})
+same => n,Noop(Llamada colgada con causa ${HANGUPCAUSE} ${DIALSTATUS})
+same => n,Dial(SIP/Ask133/9988${EXTEN:1})
+same => n,Noop(Llamada colgada con causa ${HANGUPCAUSE} ${DIALSTATUS})
+same => n,Hangup(${HANGUPCAUSE})
+
+exten => _8XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525589427352)
+same => n,Set(CALLERID(name)=Phonex Ventas)
+same => n,Set(filename=${year}/${month}/${day}/s-2942-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN:1})
+;same => n,Gosub(salida,s,1(${EXTEN:1}))
+same => n,Dial(SIP/Ask133/9988${EXTEN:1})
+same => n,Noop(Llamada colgada con causa ${HANGUPCAUSE} ${DIALSTATUS})
+same => n,Dial(SIP/Ask133/9988${EXTEN:1})
+same => n,Noop(Llamada colgada con causa ${HANGUPCAUSE} ${DIALSTATUS})
+same => n,Hangup(${HANGUPCAUSE})
+;
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+
+exten => _[1]XX,1,Answer()
+ same => n,Dial(SIP/Ask62/${EXTEN})
+ same => n,Noop(Llamada colgada con causa ${HANGUPCAUSE} ${DIALSTATUS})
+same => n,Hangup(${HANGUPCAUSE})
+
+
+[sinergis]
+exten => _ZXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525544405041)
+same => n,Set(CALLERID(name)=Sinergis)
+same => n,Set(filename=${year}/${month}/${day}/s-5041-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Dial(SIP/Ask133/9988${EXTEN:1})
+same => n,Noop(Llamada colgada con causa ${HANGUPCAUSE} ${DIALSTATUS})
+same => n,Dial(SIP/Ask133/9988${EXTEN})
+same => n,NoOp(Llamada colgada con causa ${HANGUPCAUSE} ${DIALSTATUS})
+same => n,Dial(SIP/Ask9/${EXTEN})
+same => n,NoOp(Llamada colgada con causa ${HANGUPCAUSE} ${DIALSTATUS})
+same => n,Hangup(${HANGUPCAUSE})
+
+;Brasil
+exten => _3XXXX.,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525544405041)
+same => n,Set(CALLERID(name)=Sinergis Brasil)
+same => n,Set(filename=${year}/${month}/${day}/s-50412-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Dial(SIP/Ask133/998955${EXTEN:1})
+same => n,NoOp(Llamada colgada con causa ${HANGUPCAUSE} ${DIALSTATUS})
+same => n,Dial(SIP/Ask9/${EXTEN})
+same => n,NoOp(Llamada colgada con causa ${HANGUPCAUSE} ${DIALSTATUS})
+same => n,Hangup(${HANGUPCAUSE})
+;
+;
+exten => 555,1,Macro(user-callerid)
+exten => 555,2,Read(SPYNUM,agent-newlocation)
+exten => 555,3,ChanSpy(PJSIP/${SPYNUM})
+;
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => ext-meetme
+;
+;
+
+[bumeran]
+exten => _XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525553750000)
+same => n,Set(CALLERID(name)=Bumeran)
+same => n,Set(filename=${year}/${month}/${day}/s-3581-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+;
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+
+[phonexnuevo]
+exten => _XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525553750000)
+same => n,Set(CALLERID(name)=Bumeran)
+same => n,Set(filename=${year}/${month}/${day}/s-3581-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+
+exten => _7XXX,1,
+;
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+
+[interlinked]
+exten => _XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=7111034284)
+same => n,Set(CALLERID(name)=Interlinked)
+same => n,Set(filename=${year}/${month}/${day}/s-5042-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+;same => n,Gosub(salida,s,1(${EXTEN}))
+;
+exten => 777,1,AGI(encuestas.php)
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+;
+[gyg]
+exten => _XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525553750000)
+same => n,Set(CALLERID(name)=G&G)
+same => n,Set(filename=${year}/${month}/${day}/s-2601-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+;
+[timely]
+exten => _XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525553750000)
+same => n,Set(CALLERID(name)=Timely)
+same => n,Set(filename=${year}/${month}/${day}/s-0302-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+;same => n,Gosub(salida,s,1(${EXTEN}))
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+;
+[admsalud]
+exten => _XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525553750000)
+same => n,Set(CALLERID(name)=ADM Salud)
+same => n,Set(filename=${year}/${month}/${day}/s-2802-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+:
+;
+[ingenieria-financiera]
+exten => _XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525553750000)
+same => n,Set(CALLERID(name)=Ingenieria Financiera)
+same => n,Set(filename=${year}/${month}/${day}/s-0203-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+;
+[vibe]
+exten => _9XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=528119864234)
+same => n,Set(CALLERID(name)=Vibe)
+same => n,Set(filename=${year}/${month}/${day}/s-2701-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN:1})
+same => n,Gosub(salida,s,1(${EXTEN:1}))
+
+exten => _8XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525527189866)
+same => n,Set(CALLERID(name)=Vibe)
+same => n,Set(filename=${year}/${month}/${day}/s-2701-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN:1})
+same => n,Gosub(salida,s,1(${EXTEN:1}))
+
+exten => _7XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=523330470392)
+same => n,Set(CALLERID(name)=Vibe)
+same => n,Set(filename=${year}/${month}/${day}/s-2701-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN:1})
+same => n,Gosub(salida,s,1(${EXTEN:1}))
+
+exten => _6XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=528445374596)
+same => n,Set(CALLERID(name)=Vibe)
+same => n,Set(filename=${year}/${month}/${day}/s-2701-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN:1})
+same => n,Gosub(salida,s,1(${EXTEN:1}))
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+;
+[farmabayer]
+exten => _XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525553750000)
+same => n,Set(CALLERID(name)=FarmaBayer)
+same => n,Set(filename=${year}/${month}/${day}/s-0134-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+
+
+[Provetecnia]
+exten => _1XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525589427335)
+same => n,Set(CALLERID(name)=Provetecnia)
+same => n,Set(filename=${year}/${month}/${day}/s-9999-${EXTEN:1}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN:1})
+same => n,Gosub(salida,s,1(${EXTEN:1}))
+;
+exten => _2XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525589427334)
+same => n,Set(CALLERID(name)=Otros clientes)
+same => n,Set(filename=${year}/${month}/${day}/s-0194-${EXTEN:1}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN:1})
+same => n,Gosub(salida,s,1(${EXTEN:1}))
+;
+exten => _3XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525589427331)
+same => n,Set(CALLERID(name)=Ingenieria operativa)
+same => n,Set(filename=${year}/${month}/${day}/s-9808-${EXTEN:1}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN:1})
+same => n,Gosub(salida,s,1(${EXTEN:1}))
+;
+exten => _4XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525589427353)
+same => n,Set(CALLERID(name)=Provetecnia 4)
+same => n,Set(filename=${year}/${month}/${day}/s-0102-${EXTEN:1}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN:1})
+same => n,Gosub(salida,s,1(${EXTEN:1}))
+;
+exten => _6XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525544402921)
+same => n,Set(CALLERID(name)=Provetecnia cargo)
+same => n,Set(filename=${year}/${month}/${day}/s-2712-${EXTEN:1}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN:1})
+same => n,Gosub(salida,s,1(${EXTEN:1}))
+;
+exten => _8XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525544405044)
+same => n,Set(CALLERID(name)=IOSA RX)
+same => n,Set(filename=${year}/${month}/${day}/s-1710-${EXTEN:1}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN:1})
+same => n,Gosub(salida,s,1(${EXTEN:1}))
+;
+exten => _5XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525589427472)
+same => n,Set(CALLERID(name)=SEGTEC 085)
+same => n,Set(filename=${year}/${month}/${day}/s-0126-${EXTEN:1}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN:1})
+same => n,Gosub(salida,s,1(${EXTEN:1}))
+;
+exten => _7XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525544405041)
+same => n,Set(CALLERID(name)=SEGTEC 016)
+same => n,Set(filename=${year}/${month}/${day}/s-0127-${EXTEN:1}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN:1})
+same => n,Gosub(salida,s,1(${EXTEN:1}))
+
+exten => 12XX,1,Dial(PJSIP/${EXTEN})
+same => n,Hangup(${HANGUPCAUSE})
+
+
+
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+
+
+[LaSalle]
+exten => _XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525552789500)
+same => n,Set(CALLERID(name)=La Salle)
+same => n,Set(filename=${year}/${month}/${day}/s-1206-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+;
+;
+exten => _9ZXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525559504000)
+same => n,Set(CALLERID(name)=Universidad Iberoamericana)
+same => n(continua),Set(filename=${year}/${month}/${day}/s-0215-${EXTEN:1}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN:1})
+same => n,Gosub(salida,s,1(${EXTEN:1}))
+;
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+
+[yinshu]
+exten => _ZXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525546312906)
+same => n,Set(CALLERID(name)=Yincho Group)
+same => n,Set(filename=${year}/${month}/${day}/s-1816-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+
+
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+
+[superlinker]
+exten => _XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525556299854)
+same => n,Set(CALLERID(name)=Superlinkers)
+same => n,Set(filename=${year}/${month}/${day}/s-9814-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+;
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+[michellin]
+exten => _ZXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=5556299839)
+same => n,Set(CALLERID(name)=Michellin)
+same => n,Set(filename=${year}/${month}/${day}/s-9839-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+;
+;
+[michellin-amd]
+exten => _ZXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=5556299839)
+same => n,Set(CALLERID(name)=Michellin)
+;same => n,Set(filename=${year}/${month}/${day}/s-9839-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+;same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+;same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Dial(SIP/Ask133/98391${EXTEN})
+same => n,Noop(Llamada colgada con causa ${HANGUPCAUSE} ${DIALSTATUS})
+same => n,Hangup(${HANGUPCAUSE})
+;
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+;
+[playbusiness]
+exten => _ZXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525544405042)
+same => n,Set(CALLERID(name)=Play Business)
+same => n,Set(filename=${year}/${month}/${day}/s-3582-${EXTEN:1}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN:1})
+same => n,Dial(SIP/Ask133/9988${EXTEN})
+same => n,Noop(Llamada colgada con causa ${HANGUPCAUSE} ${DIALSTATUS})
+same => n,Hangup(${HANGUPCAUSE})
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+[segurapido]
+exten => _ZXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525553750000)
+same => n,Set(CALLERID(name)=Segurapido)
+same => n,Set(filename=${year}/${month}/${day}/s-2803-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+[altronix]
+exten => _ZXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525553750000)
+same => n,Set(CALLERID(name)=Altronix)
+same => n,Set(filename=${year}/${month}/${day}/s-3030-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+[puertadelcielo]
+exten => _ZXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525553750000)
+same => n,Set(CALLERID(name)=Puertas del cielo)
+same => n,Set(filename=${year}/${month}/${day}/s-3031-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+
+[inmuebles24]
+exten => _ZXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525552036565)
+same => n,Set(CALLERID(name)=Inmuebles24)
+same => n,Set(filename=${year}/${month}/${day}/s-1107-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+;
+;
+exten => 771,1,AGI(encuestas2.php)
+;
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+
+[inbursa]
+exten => _ZXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525553750000)
+same => n,Set(CALLERID(name)=Inbursa)
+same => n,Set(filename=${year}/${month}/${day}/s-1712-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+;
+
+[asimetrico]
+exten => _XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525553750000)
+same => n,Set(CALLERID(name)=Asimetrico)
+same => n,Set(filename=${year}/${month}/${day}/s-9831-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+;
+[reactivo]
+exten => _XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525553750000)
+same => n,Set(CALLERID(name)=Reactivos y equipos)
+same => n,Set(filename=${year}/${month}/${day}/s-1807-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+;
+[amir]
+exten => _XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525553750000)
+same => n,Set(CALLERID(name)=AMIR)
+same => n,Set(filename=${year}/${month}/${day}/s-0612-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+;
+[topdata]
+exten => _XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525510841000)
+same => n,Set(CALLERID(name)=Top Data)
+same => n,Set(filename=${year}/${month}/${day}/s-0901-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+;
+exten => _10[67]X,1,Dial(PJSIP/${EXTEN})
+same => n,Hangup(${HANGUPCAUSE})
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+;
+[celixto]
+exten => _XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525590886650)
+same => n,Set(CALLERID(name)=Celixto)
+same => n,Set(filename=${year}/${month}/${day}/s-0513-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+;
+exten => _102[12],1,Dial(PJSIP/${EXTEN})
+same => n,Hangup(${HANGUPCAUSE})
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+;
+[segtec]
+exten => _5XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525589427472)
+same => n,Set(CALLERID(name)=SEGTEC 085)
+same => n,Set(filename=${year}/${month}/${day}/s-0126-${EXTEN:1}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN:1})
+same => n,Gosub(salida,s,1(${EXTEN:1}))
+;
+exten => _6XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525589427365)
+same => n,Set(CALLERID(name)=SEGTEC 016)
+same => n,Set(filename=${year}/${month}/${day}/s-0127-${EXTEN:1}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN:1})
+;same => n,Gosub(salida,s,1(${EXTEN:1}))
+;
+exten => _7XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525589427365)
+same => n,Set(CALLERID(name)=SEGTEC 079)
+same => n,Set(filename=${year}/${month}/${day}/s-0128-${EXTEN:1}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN:1})
+same => n,Gosub(salida,s,1(${EXTEN:1}))
+;
+exten => _8XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525590886662)
+same => n,Set(CALLERID(name)=SEGTEC 087)
+same => n,Set(filename=${year}/${month}/${day}/s-0129-${EXTEN:1}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN:1})
+same => n,Gosub(salida,s,1(${EXTEN:1}))
+;
+exten => _10[56][0-9],1,Dial(PJSIP/${EXTEN})
+same => n,Hangup(${HANGUPCAUSE})
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+;
+[kyocera]
+exten => _XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525589427482)
+same => n,Set(CALLERID(name)=Kyocera)
+same => n,Set(filename=${year}/${month}/${day}/s-0104-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+;
+exten => _10[8][0-9],1,Dial(PJSIP/${EXTEN})
+same => n,Hangup(${HANGUPCAUSE})
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+;
+[funerales]
+exten => _XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=526189802006)
+same => n,Set(CALLERID(name)=Funerales Hernández)
+same => n,Set(filename=${year}/${month}/${day}/s-2704-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+;
+exten => _11[5-6][0-9],1,Dial(PJSIP/${EXTEN})
+same => n,Hangup(${HANGUPCAUSE})
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+;
+
+[consulta_sep]
+exten => _XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525553750000)
+same => n,Set(CALLERID(name)=SEP)
+same => n,Set(filename=${year}/${month}/${day}/s-7364-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+;
+exten => _109[0-9],1,Dial(PJSIP/${EXTEN})
+same => n,Hangup(${HANGUPCAUSE})
+;
+;
+exten => 737,1,AGI(encuestas3.php)
+;
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+;
+[pulpopay]
+exten => _XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525553750000)
+same => n,Set(CALLERID(name)=Pulpo pay)
+same => n,Set(filename=${year}/${month}/${day}/s-0306-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+;same => n,Gosub(salida,s,1(${EXTEN}))
+;
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+;
+[infomerida]
+exten => _XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+;same => n,Set(CALLERID(num)=525553750000)
+;same => n,Set(CALLERID(name)=Informe Mérida)
+same => n,Set(filename=${year}/${month}/${day}/s-1707-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+;same => n,Gosub(salida,s,1(${EXTEN}))
+same => n,Dial(SIP/Ask133/5060${EXTEN})
+same => n,NoOp(Colgado con motivo ${HANGUPCAUSE} causa ${DIALSTATUS})
+same => n,Hangup(${HANGUPCAUSE})
+;
+exten => _109[2-5],1,Dial(PJSIP/${EXTEN})
+same => n,Hangup(${HANGUPCAUSE})
+;
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+;
+[comercial]
+exten => _XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525553750000)
+same => n,Set(CALLERID(name)=Comercial)
+same => n,Set(filename=${year}/${month}/${day}/s-2310-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+;
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+;
+[revolverx]
+exten => _XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525553750000)
+same => n,Set(CALLERID(name)=RevolverX-HP)
+same => n,Set(filename=${year}/${month}/${day}/s-2411-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+;
+;
+exten => _110[1-5],1,Dial(PJSIP/${EXTEN})
+same => n,Hangup(${HANGUPCAUSE})
+;
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+;
+[clarodirecto]
+exten => _XXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525553750000)
+same => n,Set(CALLERID(name)=Claro Directo)
+same => n,Set(filename=${year}/${month}/${day}/s-2711-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+same => n,Gosub(salida,s,1(${EXTEN}))
+;
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+;
+;
+[demo]
+exten => _ZXXXXXXXXX,1,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(CALLERID(num)=525553750000)
+same => n,Set(CALLERID(name)=DEMO)
+same => n,Set(filename=${year}/${month}/${day}/s-129942-${EXTEN}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,Set(_dtmfmacro=${EXTEN})
+;same => n,Gosub(salida,s,1(${EXTEN}))
+;exten => s,1,NoOP(${ARG1})
+same => n,Dial(SIP/Ask133/9993${EXTEN})
+same => n,NoOp(Colgado con motivo ${HANGUPCAUSE} causa ${DIALSTATUS})
+;same => n,Dial(SIP/Ask9/${ARG1})
+;same => n,NoOp(Colgado con motivo ${HANGUPCAUSE} causa ${DIALSTATUS})
+same => n,Hangup(${HANGUPCAUSE})
+
+;
+include => app-dnd-on
+include => app-dnd-off
+include => spy
+include => phonex
+include => ext-meetme
+;
+
+[spy]
+exten => 555,1,Macro(user-callerid)
+;exten => 555,2,Authenticate(1234)
+exten => 555,2,Read(SPYNUM,agent-newlocation)
+exten => 555,3,ChanSpy(PJSIP/${SPYNUM})
+
+[predictivo]
+exten => pred,1,Set(CALLERID(name)=${UNIQUEID}-${IDPRED})
+same => n,NoOp(variables ${COLA} ${IDPRED} ${NUMFON} ${CALLERID(name)})
+same => n,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(filename=${year}/${month}/${day}/s-${COLA}-${NUMFON}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,AMD
+same => n,Dial(${PBX}${COLA})
+;same => n,Goto(ext-queues,${COLA},1)
+;same => n,Queue(${COLA})
+same => n,Hangup()
+
+exten => predamd,1,Set(CALLERID(name)=${UNIQUEID}-${IDPRED})
+same => n,NoOp(variables ${COLA} ${IDPRED} ${NUMFON} ${CALLERID(name)})
+same => n,Set(year=${STRFTIME(${EPOCH},,%Y)})
+same => n,Set(month=${STRFTIME(${EPOCH},,%m)})
+same => n,Set(day=${STRFTIME(${EPOCH},,%d)})
+same => n,Set(filename=${year}/${month}/${day}/s-${COLA}-${NUMFON}-${STRFTIME(${EPOCH},,%Y%m%d-%H%M%S)}-${UNIQUEID})
+same => n,Set(CDR(recordingfile)=/var/spool/asterisk/monitor/${filename}.wav)
+same => n,MixMonitor(${filename}.wav,b)
+same => n,AMD
+same => n,GotoIf($[${AMDSTATUS}=HUMAN]?humn:mach)
+;same => n(humn),Queue(${COLA})
+;same => n(humn),Goto(ext-queues,${COLA},1)
+same => n(humn),Dial(${PBX}${COLA})
+same => n(mach),Hangup()
+
+
+[app-dnd-on]
+include => app-dnd-on-custom
+exten => *78,1,Answer
+exten => *78,n,Wait(1)
+exten => *78,n,Macro(user-callerid,)
+exten => *78,n,Set(DB(DND/${AMPUSER})=YES)
+exten => *78,n,Set(STATE=BUSY)
+exten => *78,n,Gosub(app-dnd-on,sstate,1())
+exten => *78,n(hook_1),Playback(do-not-disturb&activated)
+exten => *78,n,Macro(hangupcall,)
+
+exten => sstate,1,Set(DEVICE_STATE(Custom:DND${AMPUSER})=${STATE})
+exten => sstate,n,Set(DEVICES=${DB(AMPUSER/${AMPUSER}/device)})
+exten => sstate,n,GotoIf($["${DEVICES}" = "" ]?return)
+exten => sstate,n,Set(LOOPCNT=${FIELDQTY(DEVICES,&)})
+exten => sstate,n,Set(ITER=1)
+exten => sstate,n(begin),Set(DEVICE_STATE(Custom:DEVDND${CUT(DEVICES,&,${ITER})})=${STATE})
+exten => sstate,n,Set(ITER=$[${ITER} + 1])
+exten => sstate,n,GotoIf($[${ITER} <= ${LOOPCNT}]?begin)
+exten => sstate,n(return),Return()
+
+[app-dnd-off]
+include => app-dnd-off-custom
+exten => *79,1,Answer
+exten => *79,n,Wait(1)
+exten => *79,n,Macro(user-callerid,)
+exten => *79,n,Noop(Deleting: DND/${AMPUSER} ${DB_DELETE(DND/${AMPUSER})})
+exten => *79,n,Set(STATE=UNAVAILABLE)
+exten => *79,n,Gosub(app-dnd-off,sstate,1())
+exten => *79,n(hook_1),Playback(do-not-disturb&de-activated)
+exten => *79,n,Macro(hangupcall,)
+
+exten => sstate,1,Set(DEVICE_STATE(Custom:DND${AMPUSER})=${STATE})
+exten => sstate,n,Set(DEVICES=${DB(AMPUSER/${AMPUSER}/device)})
+exten => sstate,n,GotoIf($["${DEVICES}" = "" ]?return)
+exten => sstate,n,Set(LOOPCNT=${FIELDQTY(DEVICES,&)})
+exten => sstate,n,Set(ITER=1)
+exten => sstate,n(begin),Set(DEVICE_STATE(Custom:DEVDND${CUT(DEVICES,&,${ITER})})=${STATE})
+exten => sstate,n,Set(ITER=$[${ITER} + 1])
+exten => sstate,n,GotoIf($[${ITER} <= ${LOOPCNT}]?begin)
+exten => sstate,n(return),Return()
+
+[salida]
+exten => s,1,NoOP(${ARG1})
+same => n,Dial(SIP/Ask133/9988${ARG1})
+same => n,NoOp(Colgado con motivo ${HANGUPCAUSE} causa ${DIALSTATUS})
+same => n,Dial(SIP/Ask133/9988${ARG1})
+same => n,NoOp(Colgado con motivo ${HANGUPCAUSE} causa ${DIALSTATUS})
+same => n,Dial(SIP/Ask9/${ARG1})
+same => n,NoOp(Colgado con motivo ${HANGUPCAUSE} causa ${DIALSTATUS})
+same => n,Hangup(${HANGUPCAUSE})
+same => n,Return()
+
+[phonex]
+exten => _1XX,1,Answer()
+same => n,Dial(SIP/Ask62/${EXTEN},,r)
+same => n,Hangup()
+
+exten => _5088,1,Answer()
+same => n,Dial(PJSIP/${EXTEN},,r)
+same => n,Hangup()
+
+exten => _5089,1,Answer()
+same => n,Dial(PJSIP/${EXTEN},,r)
+same => n,Hangup()
