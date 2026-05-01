@@ -20,6 +20,7 @@ BUILD_BAGO="${BUILD_BAGO:-1}"
 PATCH_SOFTPHONE="${PATCH_SOFTPHONE:-0}"
 ENABLE_CONTINGENCY="${ENABLE_CONTINGENCY:-0}"
 RESTART_SERVICES="${RESTART_SERVICES:-0}"
+PREFLIGHT_ONLY="${PREFLIGHT_ONLY:-0}"
 
 say() {
     printf '%s\n' "$*"
@@ -40,6 +41,14 @@ require_root() {
 
 require_cmd() {
     command -v "$1" >/dev/null 2>&1 || fail "No se encontro el comando requerido: $1"
+}
+
+require_cmd_if_requested() {
+    local command_name="$1"
+    local flag_value="$2"
+    if [[ "$flag_value" == "1" ]]; then
+        require_cmd "$command_name"
+    fi
 }
 
 backup_file_if_exists() {
@@ -70,16 +79,69 @@ check_prereqs() {
     step "Verificando prerequisitos"
     require_root
     require_cmd rsync
-    require_cmd "$MYSQL_BIN"
     require_cmd php
-    if [[ "$BUILD_BAGO" == "1" ]]; then
-        require_cmd "$GO_BIN"
-    fi
+    require_cmd_if_requested "$MYSQL_BIN" "$RESTORE_DB_SCHEMA"
+    require_cmd_if_requested "$GO_BIN" "$BUILD_BAGO"
 
     [[ -d "$REPO_ROOT/backend/bago" ]] || fail "No existe $REPO_ROOT/backend/bago"
     [[ -d "$REPO_ROOT/webroot/application" ]] || fail "No existe $REPO_ROOT/webroot/application"
     [[ -d "$REPO_ROOT/telephony/etc/asterisk" ]] || fail "No existe $REPO_ROOT/telephony/etc/asterisk"
     [[ -d "$REPO_ROOT/database/schema" ]] || fail "No existe $REPO_ROOT/database/schema"
+}
+
+report_path_state() {
+    local path_label="$1"
+    local path_value="$2"
+    if [[ -e "$path_value" ]]; then
+        say "OK  ${path_label}: ${path_value}"
+    else
+        say "WARN ${path_label}: ${path_value} no existe aun"
+    fi
+}
+
+preflight_summary() {
+    step "Resumen preflight"
+    say "repo_root=$REPO_ROOT"
+    say "target_web_root=$TARGET_WEB_ROOT"
+    say "target_bago_root=$TARGET_BAGO_ROOT"
+    say "target_sivna_root=$TARGET_SIVNA_ROOT"
+    say "target_keys_root=$TARGET_KEYS_ROOT"
+    say "target_asterisk_root=$TARGET_ASTERISK_ROOT"
+    say "target_etc_root=$TARGET_ETC_ROOT"
+    say "restore_db_schema=$RESTORE_DB_SCHEMA"
+    say "build_bago=$BUILD_BAGO"
+    say "patch_softphone=$PATCH_SOFTPHONE"
+    say "enable_contingency=$ENABLE_CONTINGENCY"
+    say "restart_services=$RESTART_SERVICES"
+    say "preflight_only=$PREFLIGHT_ONLY"
+
+    report_path_state "web root destino" "$TARGET_WEB_ROOT"
+    report_path_state "bago destino" "$TARGET_BAGO_ROOT"
+    report_path_state "sivna destino" "$TARGET_SIVNA_ROOT"
+    report_path_state "keys destino" "$TARGET_KEYS_ROOT"
+    report_path_state "asterisk destino" "$TARGET_ASTERISK_ROOT"
+    report_path_state "etc destino" "$TARGET_ETC_ROOT"
+
+    if command -v systemctl >/dev/null 2>&1; then
+        say
+        say "Estado de servicios relevantes:"
+        systemctl is-enabled bago 2>/dev/null || true
+        systemctl is-enabled apache2 2>/dev/null || true
+        systemctl is-enabled asterisk 2>/dev/null || true
+    fi
+
+    say
+    say "Bases a restaurar por esquema:"
+    say "- assertive"
+    say "- asterisk"
+    say "- asteriskcdrdb"
+
+    say
+    say "Validaciones sugeridas antes de ejecutar restauracion real:"
+    say "- Confirmar dominio final y certificados TLS"
+    say "- Confirmar acceso MySQL con permisos de CREATE/IMPORT"
+    say "- Confirmar servicio systemd de bago o su unidad destino"
+    say "- Confirmar instalacion de FreePBX/Asterisk si se restaura telefonia"
 }
 
 backup_current_config() {
@@ -195,6 +257,12 @@ validate_restore() {
 
 main() {
     check_prereqs
+
+    if [[ "$PREFLIGHT_ONLY" == "1" ]]; then
+        preflight_summary
+        return 0
+    fi
+
     backup_current_config
     deploy_backend
     deploy_webroot

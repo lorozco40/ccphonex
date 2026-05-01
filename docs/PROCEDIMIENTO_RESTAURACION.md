@@ -55,6 +55,25 @@ chmod +x scripts/restaurar_instancia.sh
 ./scripts/restaurar_instancia.sh
 ```
 
+## Preflight no destructivo
+
+Para validar requisitos, rutas y dependencias sin tocar archivos, bases o servicios:
+
+```bash
+PREFLIGHT_ONLY=1 ./scripts/restaurar_instancia.sh
+```
+
+Este modo:
+
+1. Verifica prerequisitos.
+2. Revisa rutas esperadas.
+3. Resume variables efectivas.
+4. Informa bases y servicios implicados.
+5. No copia archivos.
+6. No importa esquema.
+7. No compila bago.
+8. No reinicia servicios.
+
 ## Ejemplos utiles
 
 Solo desplegar archivos y esquema, sin reinicios:
@@ -79,6 +98,13 @@ Desplegar y aplicar correccion del softphone WebRTC:
 
 ```bash
 PATCH_SOFTPHONE=1 ./scripts/restaurar_instancia.sh
+```
+
+Validar primero y ejecutar despues:
+
+```bash
+PREFLIGHT_ONLY=1 ./scripts/restaurar_instancia.sh
+RESTART_SERVICES=1 PATCH_SOFTPHONE=1 ./scripts/restaurar_instancia.sh
 ```
 
 Cambiar rutas por un layout distinto:
@@ -119,6 +145,7 @@ systemctl status bago --no-pager -l
 3. No reinicia servicios salvo que se indique.
 4. No crea contenido de base con datos, solo esquema.
 5. Respeta rutas configurables por variables de entorno.
+6. Puede ejecutarse primero en modo preflight sin tocar nada.
 
 ## Punto de atencion
 

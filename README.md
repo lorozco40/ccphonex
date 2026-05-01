@@ -49,3 +49,9 @@ Este repositorio contiene solo lo necesario para levantar otra instancia o servi
 - Script principal: `scripts/restaurar_instancia.sh`
 
 El script automatiza despliegue de codigo, configuracion, llaves, restauracion de esquemas SQL, compilacion de bago y validaciones base. Los reinicios de servicios y la activacion de contingencia quedan como opciones controladas por variables.
+
+Tambien incluye un modo preflight no destructivo:
+
+```bash
+PREFLIGHT_ONLY=1 ./scripts/restaurar_instancia.sh
+```
