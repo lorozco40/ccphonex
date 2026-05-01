@@ -42,3 +42,10 @@ Este repositorio contiene solo lo necesario para levantar otra instancia o servi
 3. Crear las bases desde `database/schema/`.
 4. Completar cualquier secreto o ajuste de red necesario para el nuevo entorno.
 5. Validar bago, web, Asterisk, FreePBX y softphone.
+
+## Restauracion automatizada
+
+- Procedimiento detallado: `docs/PROCEDIMIENTO_RESTAURACION.md`
+- Script principal: `scripts/restaurar_instancia.sh`
+
+El script automatiza despliegue de codigo, configuracion, llaves, restauracion de esquemas SQL, compilacion de bago y validaciones base. Los reinicios de servicios y la activacion de contingencia quedan como opciones controladas por variables.
