@@ -9,6 +9,17 @@ use Box\Spout\Writer\Style\StyleBuilder;
 class Reportes_model extends CI_Model
 {
 
+    private function syncRepAbandonoRange($min, $max) {
+        $this->load->model('repoback_model');
+        $current = new DateTime($min);
+        $limit = new DateTime($max);
+
+        while ($current <= $limit) {
+            $this->repoback_model->abandono($current->format('Y-m-d'));
+            $current->modify('+1 day');
+        }
+    }
+
     public $posibles_titulos = [
         'campana'    => 'Campaña',
         'id_campana' => 'ID Campaña',
@@ -601,22 +612,22 @@ class Reportes_model extends CI_Model
     }
 
     public function abandono($data) {
-        $maswere = " AND camp.id IN ($data[campana])";
+        $this->syncRepAbandonoRange($data['min'], $data['max']);
+        $maswere = " AND ra.id_campaign IN ($data[campana])";
         if ($data['llamadas']!='0')  {
-            $maswere .=" AND c.status='".$data['llamadas']."'";
+            $maswere .=" AND ra.status='".$data['llamadas']."'";
         }
-        $data['prequery'] = "SELECT c.id, date_format(c.datetime_received, '$this->dtfor') fecha,
-            c.cid_num numero, c.uniqueid linkedid, if(c.did<>'',camp.name,'') campana, c.did did,
-            SEC_TO_TIME(if(c.datetime_queued is not null, c.duration_wait, 0)) duration_wait,
-            SEC_TO_TIME(c.duration) duration,
-            TIMEDIFF(COALESCE(c.datetime_init, c.datetime_end), c.datetime_received) duration_tot,
-            c.status estatus, c.grabacion
-            FROM call_entry c
-            LEFT JOIN user u ON c.id_user=u.id
-            left join campaign camp ON camp.id = c.id_campaign
-            WHERE date(c.datetime_received) BETWEEN '$data[min]' AND '$data[max]' $maswere
-                AND c.type='Entrante' AND (c.status<>'En curso' and c.status<>'Terminada')
-            ORDER BY c.datetime_received DESC";
+        $data['prequery'] = "SELECT ra.id, date_format(ra.datetime_received, '$this->dtfor') fecha,
+            ra.cid_num numero, ra.linkedid linkedid, ra.campaign campana, ra.did did,
+            SEC_TO_TIME(ra.queue_wait) duration_wait,
+            SEC_TO_TIME(COALESCE(ce.duration, 0)) duration,
+            SEC_TO_TIME(ra.total_wait) duration_tot,
+            if(ra.status='Abandonada Troncal','Abandonada', ra.status) estatus,
+            COALESCE(ce.grabacion, '') grabacion
+            FROM rep_abandono ra
+            LEFT JOIN call_entry ce ON ce.id = ra.id
+            WHERE date(ra.datetime_received) BETWEEN '$data[min]' AND '$data[max]' $maswere
+            ORDER BY ra.datetime_received DESC";
         $data = $this->datos_model->manejadorqueries($data);
         if ($data['pag'] !== 'x') {
             foreach ($data["data"] as $key => $row) {
@@ -630,22 +641,22 @@ class Reportes_model extends CI_Model
     }
 
     public function abandono_total($data) {
+        $this->syncRepAbandonoRange($data['min'], $data['max']);
         $maswere = "";
         if ($data['llamadas']!='0')  {
-            $maswere .=" AND c.status='".$data['llamadas']."'";
+            $maswere .=" AND ra.status='".$data['llamadas']."'";
         }
-        $data['prequery'] = "SELECT c.id, date_format(c.datetime_received, '$this->dtfor') fecha,
-            c.cid_num numero, c.uniqueid linkedid, if(c.did<>'',camp.name,'') campana, c.did did,
-            SEC_TO_TIME(if(c.datetime_queued is not null, c.duration_wait, 0)) duration_wait,
-            SEC_TO_TIME(c.duration) duration,
-            TIMEDIFF(COALESCE(c.datetime_init, c.datetime_end), c.datetime_received) duration_tot,
-            c.status estatus, c.grabacion
-            FROM call_entry c
-            LEFT JOIN user u ON c.id_user=u.id
-            LEFT JOIN campaign camp ON camp.id = c.id_campaign
-            WHERE date(c.datetime_received) BETWEEN '$data[min]' AND '$data[max]' $maswere
-                AND c.type='Entrante' AND (c.status<>'En curso' and c.status<>'Terminada')
-            ORDER BY c.datetime_received DESC";
+        $data['prequery'] = "SELECT ra.id, date_format(ra.datetime_received, '$this->dtfor') fecha,
+            ra.cid_num numero, ra.linkedid linkedid, ra.campaign campana, ra.did did,
+            SEC_TO_TIME(ra.queue_wait) duration_wait,
+            SEC_TO_TIME(COALESCE(ce.duration, 0)) duration,
+            SEC_TO_TIME(ra.total_wait) duration_tot,
+            if(ra.status='Abandonada Troncal','Abandonada', ra.status) estatus,
+            COALESCE(ce.grabacion, '') grabacion
+            FROM rep_abandono ra
+            LEFT JOIN call_entry ce ON ce.id = ra.id
+            WHERE date(ra.datetime_received) BETWEEN '$data[min]' AND '$data[max]' $maswere
+            ORDER BY ra.datetime_received DESC";
         $data = $this->datos_model->manejadorqueries($data);
         if ($data['pag'] !== 'x') {
             foreach ($data["data"] as $key => $row) {
