@@ -1,6 +1,28 @@
 var chiusers = {};
+var http = require('http');
+var https = require('https');
+var URL = require('url').URL;
+
+function envBool(value, def) {
+    if (typeof value === 'undefined' || value === null || value === '') {
+        return def;
+    }
+    return value === 'true' || value === '1' || value === 'si' || value === 'yes';
+}
+
+function getAiConfig() {
+    var timeout = parseInt(process.env.AI_TIMEOUT_MS || '1200', 10);
+    return {
+        enabled: envBool(process.env.AI_ENABLED, false),
+        shadowMode: envBool(process.env.AI_SHADOW_MODE, true),
+        serviceUrl: process.env.AI_SERVICE_URL || 'http://127.0.0.1:8090',
+        timeoutMs: isNaN(timeout) ? 1200 : timeout
+    };
+}
 
 module.exports = function(io, con) {
+    var aiConfig = getAiConfig();
+
     io.on('connection', function (socket) {
         actualiza_usuarios();
         console.log(getFecha()+' usuario conectado en '+socket.id);
@@ -94,6 +116,7 @@ module.exports = function(io, con) {
                 } else {
                     io.sockets.to(chiusers[data.to].sid).emit('new_msg', toemit);
                 }
+                sendAiSuggestion(socket, data, toemit[0]);
             });
         });
 
@@ -142,6 +165,83 @@ module.exports = function(io, con) {
         fecha = d.getFullYear()+"-"+('0'+(d.getMonth() + 1)).slice(-2)+"-"+('0'+d.getDate()).slice(-2);
         hora = ('0'+d.getHours()).slice(-2)+":"+('0'+d.getMinutes()).slice(-2)+":"+('0'+d.getSeconds()).slice(-2);
         return fecha+" "+hora;
+    }
+
+    function sendAiSuggestion(socket, data, message) {
+        if (!aiConfig.enabled) {
+            return;
+        }
+
+        var endpoint;
+        try {
+            endpoint = new URL('/v1/recommendations', aiConfig.serviceUrl);
+        } catch (e) {
+            console.error('AI url invalida', e.message);
+            return;
+        }
+
+        var payload = JSON.stringify({
+            channel: 'chat',
+            metadata: {
+                from: data.from,
+                to: data.to,
+                message_id: message.id
+            },
+            conversation: [{
+                speaker: 'customer',
+                text: String(data.msg || '')
+            }]
+        });
+
+        var requester = endpoint.protocol === 'https:' ? https : http;
+        var req = requester.request({
+            protocol: endpoint.protocol,
+            hostname: endpoint.hostname,
+            port: endpoint.port || (endpoint.protocol === 'https:' ? 443 : 80),
+            path: endpoint.pathname,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(payload)
+            }
+        }, function(res) {
+            var body = '';
+            res.on('data', function(chunk) {
+                body += chunk;
+            });
+            res.on('end', function() {
+                if (res.statusCode < 200 || res.statusCode > 299) {
+                    return;
+                }
+                try {
+                    var parsed = JSON.parse(body);
+                    var out = {
+                        message_id: message.id,
+                        from: data.from,
+                        to: data.to,
+                        suggestions: parsed.suggested_replies || [],
+                        summary: parsed.conversation_summary || '',
+                        next_best_action: parsed.next_best_action || '',
+                        confidence: parsed.confidence || 0,
+                        shadow_mode: aiConfig.shadowMode
+                    };
+                    socket.emit('ai_suggestion', out);
+                } catch (e) {
+                    console.error('AI response invalida', e.message);
+                }
+            });
+        });
+
+        req.on('error', function(err) {
+            console.error('AI error', err.message);
+        });
+
+        req.setTimeout(aiConfig.timeoutMs, function() {
+            req.destroy(new Error('AI timeout'));
+        });
+
+        req.write(payload);
+        req.end();
     }
 
     function traduce_permisos(permisos = '0,0,0,0,0') {
