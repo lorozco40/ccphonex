@@ -12,6 +12,9 @@
 # Runtime local
 **/cache/
 **/tmp/
+.venv_transcripcion/
+**/__pycache__/
+*.bak
 
 # Datos operativos excluidos por politica
 ops/audios_sep/

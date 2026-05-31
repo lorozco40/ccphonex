@@ -88,6 +88,88 @@ var repgen = {
 
 $(document).ready(function() {
     repgen.getpag();
+
+    function resetAnalysisModal() {
+        $("#analysis_call_id, #analysis_call_type").val("");
+        $("#analysis_fecha, #analysis_agente, #analysis_numero, #analysis_campana").text("");
+        $("#analysis_status").removeClass("alert-danger alert-success alert-warning alert-info").addClass("alert-secondary").text("Cargando analisis...");
+        $("#analysis_timing").text("");
+        $("#analysis_audio, #analysis_sentiment_label, #analysis_sentiment_score, #analysis_sentiment_summary").html("");
+        $("#analysis_transcription").val("");
+        $("#analysis_transcription_meta").text("");
+        $("#analysis_error").text("");
+        $("#analysis_error_wrap").addClass("d-none");
+        $("#analysis_request").addClass("d-none");
+        $("#analysis_reprocess").addClass("d-none");
+        $("#analysis_reprocess_hq").addClass("d-none");
+        $("#analysis_reprocess_max").addClass("d-none");
+    }
+
+    function loadAnalysisAudio(src) {
+        $("#analysis_audio").html("");
+        if (!src) {
+            return;
+        }
+        $.post(site_url + "ajax/tmpaudio", {src: src}, function(data) {
+            if (data == 'OK') {
+                var sound = document.createElement('audio');
+                sound.controls = 'controls';
+                sound.preload = true;
+                sound.src = site_url + 'files/' + src;
+                $("#analysis_audio").html(sound);
+            } else {
+                $("#analysis_audio").html(data);
+            }
+        }, "json");
+    }
+
+    function paintAnalysisResponse(response) {
+        var status = response.processing_status || 'pendiente';
+        $("#analysis_status").removeClass("alert-secondary alert-danger alert-success alert-warning alert-info");
+        if (status === 'listo') {
+            $("#analysis_status").addClass("alert-success");
+        } else if (status === 'error') {
+            $("#analysis_status").addClass("alert-danger");
+        } else if (status === 'no_solicitado') {
+            $("#analysis_status").addClass("alert-info");
+        } else {
+            $("#analysis_status").addClass("alert-warning");
+        }
+        $("#analysis_status").text(response.status_message || 'Estado no disponible.');
+        if (response.processing_duration_seconds !== null && response.transcription_seconds_per_minute !== null) {
+            $("#analysis_timing").text(
+                'Tiempo de proceso: ' + response.processing_duration_seconds + ' s | Rendimiento: ' + response.transcription_seconds_per_minute + ' s por minuto de audio'
+            );
+        } else {
+            $("#analysis_timing").text('');
+        }
+        $("#analysis_sentiment_label").text(response.sentiment_label || 'Sin dato');
+        $("#analysis_sentiment_score").text(response.sentiment_score === null ? '' : 'Score: ' + response.sentiment_score);
+        $("#analysis_sentiment_summary").text(response.sentiment_summary || '');
+        $("#analysis_transcription").val(response.transcription_text || 'Sin transcripcion disponible.');
+        if (response.transcription_length && response.transcription_length > 0) {
+            $("#analysis_transcription_meta").text('Transcripcion completa cargada: ' + response.transcription_length + ' caracteres. Usa la barra lateral o agranda el cuadro si necesitas mas espacio.');
+        } else {
+            $("#analysis_transcription_meta").text('Sin transcripcion disponible.');
+        }
+        if (response.processing_error) {
+            $("#analysis_error").text(response.processing_error);
+            $("#analysis_error_wrap").removeClass("d-none");
+        }
+        if (response.can_request) {
+            $("#analysis_request").removeClass("d-none");
+        }
+        if (response.can_reprocess) {
+            $("#analysis_reprocess").removeClass("d-none");
+        }
+        if (response.can_reprocess_high_quality) {
+            $("#analysis_reprocess_hq").removeClass("d-none");
+        }
+        if (response.can_reprocess_max_quality) {
+            $("#analysis_reprocess_max").removeClass("d-none");
+        }
+        loadAnalysisAudio(response.grabacion);
+    }
     $('.datepicker').datepicker({
         monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Setpiembre', 'Octubre', 'Noviembre', 'Diciembre'],
         dayNamesMin: ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'],
@@ -122,12 +204,13 @@ $(document).ready(function() {
     });
 
     $(document).on("click", ".dinau", function(){
-        var id  = $(this).data("id");
-        var src = $(this).data("src");
+        var button = $(this);
+        var id  = button.data("id");
+        var src = button.data("src");
         $("#escuchaudioAudio").html("");
         $("#audfecha").text("No audio");
-        $("#audnumero, #audagente").text("");
-        $.post(site_url+"ajax/tmpaudio", {src: $(this).data("src")}, function(data) {
+        $("#audnumero, #audagente, #audcampana, #audduracion, #audestatus").text("");
+        $.post(site_url+"ajax/tmpaudio", {src: button.data("src")}, function(data) {
             if (data == 'OK') {
                 var sound      = document.createElement('audio');
                 sound.id       = id;
@@ -136,9 +219,12 @@ $(document).ready(function() {
                 sound.autoplay = true;
                 sound.src      = site_url+'files/'+src;
                 $("#escuchaudioAudio").html(sound);
-                $("#audfecha").text($("#fecha"+id).text());
-                $("#audnumero").text($("#numero"+id).text());
-                $("#audagente").text($("#agente"+id).text());
+                $("#audfecha").text(button.data("fecha") || $("#fecha"+id).text());
+                $("#audnumero").text(button.data("numero") || $("#numero"+id).text());
+                $("#audagente").text(button.data("agente") || $("#agente"+id).text());
+                $("#audcampana").text(button.data("campana") || '');
+                $("#audduracion").text(button.data("duracion") || '');
+                $("#audestatus").text(button.data("estatus") || '');
             } else {
                 $("#escuchaudioAudio").html(data);
             }
@@ -147,10 +233,12 @@ $(document).ready(function() {
 
     $(document).on("click", ".lanzamodal", function(){
         $("#evaltotal").text("0");
-        var id   = $(this).data("id");
-        var cola = $(this).data("cola");
-        var src  = $(this).data("src");
-        $.post(site_url+"ajax/tmpaudio", {src: $(this).data("src")}, function(data) {
+        var button = $(this);
+        var id   = button.data("id");
+        var cola = button.data("cola");
+        var src  = button.data("src");
+        $("#m_campana, #m_duracion, #m_estatus").text('');
+        $.post(site_url+"ajax/tmpaudio", {src: button.data("src")}, function(data) {
             if (data == 'OK') {
                 var sound      = document.createElement('audio');
                 sound.id       = id;
@@ -158,9 +246,12 @@ $(document).ready(function() {
                 sound.preload  = true;
                 sound.autoplay = true;
                 sound.src      = site_url+'files/'+src;
-                $("#m_fecha").text($("#fecha"+id).text());
-                $("#m_numero").text($("#numero"+id).text());
-                $("#m_agente").text($("#agente"+id).text());
+                $("#m_fecha").text(button.data("fecha") || $("#fecha"+id).text());
+                $("#m_numero").text(button.data("numero") || $("#numero"+id).text());
+                $("#m_agente").text(button.data("agente") || $("#agente"+id).text());
+                $("#m_campana").text(button.data("campana") || cola || '');
+                $("#m_duracion").text(button.data("duracion") || '');
+                $("#m_estatus").text(button.data("estatus") || '');
                 $("#grabacion").html(sound);
                 $.post(site_url+"calidad/traercampos", {id: id, cola: cola}, function(data){
                     if (false == data) {
@@ -222,6 +313,160 @@ $(document).ready(function() {
             var total = prev - este;
         }
         $("#evaltotal").text(total);
+    });
+
+    $(document).on("click", ".launch-analysis", function(){
+        var button = $(this);
+        resetAnalysisModal();
+        $("#analysis_call_id").val(button.data("call-id"));
+        $("#analysis_call_type").val(button.data("call-type"));
+        $("#analysis_fecha").text(button.data("fecha"));
+        $("#analysis_agente").text(button.data("agente"));
+        $("#analysis_numero").text(button.data("numero"));
+        $("#analysis_campana").text(button.data("campana"));
+
+        $.post(site_url + "analisis/detalle", {
+            call_id: button.data("call-id"),
+            call_type: button.data("call-type")
+        }, function(data) {
+            if (!data.ok) {
+                $("#analysis_status").removeClass("alert-secondary alert-success alert-warning").addClass("alert-danger").text(data.error || 'No fue posible consultar el analisis.');
+                $("#analysis_error").text(data.error || 'Error no especificado.');
+                $("#analysis_error_wrap").removeClass("d-none");
+                loadAnalysisAudio(button.data("src"));
+                return;
+            }
+            paintAnalysisResponse(data.data);
+        }, "json").fail(function() {
+            $("#analysis_status").removeClass("alert-secondary alert-success alert-warning alert-info").addClass("alert-danger").text("Error de red al consultar el analisis.");
+            loadAnalysisAudio(button.data("src"));
+        });
+    });
+
+    $(document).on("click", ".request-analysis", function(){
+        var button = $(this);
+        resetAnalysisModal();
+        $("#analysis_call_id").val(button.data("call-id"));
+        $("#analysis_call_type").val(button.data("call-type"));
+        $("#analysis_fecha").text(button.data("fecha"));
+        $("#analysis_agente").text(button.data("agente"));
+        $("#analysis_numero").text(button.data("numero"));
+        $("#analysis_campana").text(button.data("campana"));
+        loadAnalysisAudio(button.data("src"));
+
+        $("#analysis_status").removeClass("alert-secondary alert-danger alert-success alert-info").addClass("alert-warning").text("Encolando llamada para analisis...");
+        $("#analysisModal").modal("show");
+
+        $.post(site_url + "analisis/solicitar", {
+            call_id: button.data("call-id"),
+            call_type: button.data("call-type")
+        }, function(data) {
+            if (!data.ok) {
+                $("#analysis_status").removeClass("alert-secondary alert-success alert-warning alert-info").addClass("alert-danger").text(data.error || 'No fue posible solicitar el analisis.');
+                $("#analysis_error").text(data.error || 'Error no especificado.');
+                $("#analysis_error_wrap").removeClass("d-none");
+                return;
+            }
+            paintAnalysisResponse(data.data);
+            repgen.getpag($("#pag").val() || 0);
+        }, "json").fail(function() {
+            $("#analysis_status").removeClass("alert-secondary alert-success alert-warning alert-info").addClass("alert-danger").text("Error de red al solicitar el analisis.");
+        });
+    });
+
+    $(document).on("click", "#analysis_request", function(){
+        var callId = $("#analysis_call_id").val();
+        var callType = $("#analysis_call_type").val();
+        if (!callId || !callType) {
+            return;
+        }
+
+        $("#analysis_status").removeClass("alert-secondary alert-danger alert-success alert-info").addClass("alert-warning").text("Encolando llamada para analisis...");
+        $.post(site_url + "analisis/solicitar", {
+            call_id: callId,
+            call_type: callType
+        }, function(data) {
+            if (!data.ok) {
+                $("#analysis_status").removeClass("alert-secondary alert-success alert-warning alert-info").addClass("alert-danger").text(data.error || 'No fue posible solicitar el analisis.');
+                return;
+            }
+            paintAnalysisResponse(data.data);
+        }, "json").fail(function() {
+            $("#analysis_status").removeClass("alert-secondary alert-success alert-warning alert-info").addClass("alert-danger").text("Error de red al solicitar el analisis.");
+        });
+    });
+
+    $(document).on("click", "#analysis_reprocess", function(){
+        var callId = $("#analysis_call_id").val();
+        var callType = $("#analysis_call_type").val();
+        if (!callId || !callType) {
+            return;
+        }
+
+        $("#analysis_status").removeClass("alert-danger alert-success alert-info").addClass("alert-warning").text("Marcando llamada para reproceso...");
+        $.post(site_url + "analisis/reprocesar", {
+            call_id: callId,
+            call_type: callType
+        }, function(data) {
+            if (!data.ok) {
+                $("#analysis_status").removeClass("alert-secondary alert-success alert-warning alert-info").addClass("alert-danger").text(data.error || 'No fue posible reprocesar la llamada.');
+                return;
+            }
+            paintAnalysisResponse(data.data);
+        }, "json").fail(function() {
+            $("#analysis_status").removeClass("alert-secondary alert-success alert-warning alert-info").addClass("alert-danger").text("Error de red al solicitar reproceso.");
+        });
+    });
+
+    $(document).on("click", "#analysis_reprocess_hq", function(){
+        var callId = $("#analysis_call_id").val();
+        var callType = $("#analysis_call_type").val();
+        if (!callId || !callType) {
+            return;
+        }
+
+        $("#analysis_status").removeClass("alert-danger alert-success alert-info").addClass("alert-warning").text("Marcando llamada para reproceso en alta calidad...");
+        $.post(site_url + "analisis/reprocesar_alta_calidad", {
+            call_id: callId,
+            call_type: callType
+        }, function(data) {
+            if (!data.ok) {
+                $("#analysis_status").removeClass("alert-secondary alert-success alert-warning alert-info").addClass("alert-danger").text(data.error || 'No fue posible reprocesar la llamada en alta calidad.');
+                return;
+            }
+            paintAnalysisResponse(data.data);
+        }, "json").fail(function() {
+            $("#analysis_status").removeClass("alert-secondary alert-success alert-warning alert-info").addClass("alert-danger").text("Error de red al solicitar reproceso en alta calidad.");
+        });
+    });
+
+    $(document).on("click", "#analysis_reprocess_max", function(){
+        var callId = $("#analysis_call_id").val();
+        var callType = $("#analysis_call_type").val();
+        if (!callId || !callType) {
+            return;
+        }
+
+        $("#analysis_status").removeClass("alert-danger alert-success alert-info").addClass("alert-warning").text("Marcando llamada para reproceso en maxima calidad...");
+        $.post(site_url + "analisis/reprocesar_maxima_calidad", {
+            call_id: callId,
+            call_type: callType
+        }, function(data) {
+            if (!data.ok) {
+                $("#analysis_status").removeClass("alert-secondary alert-success alert-warning alert-info").addClass("alert-danger").text(data.error || 'No fue posible reprocesar la llamada en maxima calidad.');
+                return;
+            }
+            paintAnalysisResponse(data.data);
+        }, "json").fail(function() {
+            $("#analysis_status").removeClass("alert-secondary alert-success alert-warning alert-info").addClass("alert-danger").text("Error de red al solicitar reproceso en maxima calidad.");
+        });
+    });
+
+    $("#analysisModal").on('hide.bs.modal', function() {
+        var audio = $("#analysisModal audio");
+        if (typeof audio[0] != 'undefined') {
+            audio[0].pause();
+        }
     });
 
     $(".auco").each(function() {

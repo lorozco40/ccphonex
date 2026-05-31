@@ -491,9 +491,15 @@ class Reportes_model extends CI_Model
         ORDER BY r.fecha DESC";
         $data = $this->datos_model->manejadorqueries($data);
         $calificar = in_array('calidad/guardareval', $this->udata['permiso']) ? true : false;
+        $canAnalyze = !empty($this->udata['perfil']) && $this->udata['perfil'] !== 'agente';
         if ($data['pag'] !== 'x') {
+            if (!in_array('analisis', $data['campos'])) {
+                $data['campos'][] = 'analisis';
+            }
+            $analysisIndex = $canAnalyze ? $this->getAnalysisIndex($data['data'], 'outbound') : [];
             foreach ($data["data"] as $key => $row) {
                 $boton = "";
+                $botonAnalisis = $this->buildAnalysisButton($row, 'outbound', $analysisIndex);
                 if ($row->calidad != null) {
                     if ($row->calidad <= 69.4) {
                         $clase = "esrojo";
@@ -515,15 +521,12 @@ class Reportes_model extends CI_Model
                     $data["data"][$key]->calidad = $row->calidad . "%";
                 } else {
                     if ($row->estatus == "Terminada" && $row->duracion >= "00:00:09" && $calificar) {
-                        $boton = "<button type='button' class='btn btn-success lanzamodal' data-src='".
-                        $data["data"][$key]->grabacion."' data-toggle='modal' data-target='#evalModal' data-id='".
-                        $row->id."' data-cola='".$row->campana."'>Evaluación</button>";
+                        $boton = $this->buildQualityButton($row, $data["data"][$key]->grabacion, $row->campana);
                     }
                 }
                 $data["data"][$key]->calidad .= " <span title='".$row->comentario."'>$boton</span>";
-                $data["data"][$key]->grabacion = "<button id='aud".$key."' data-nameaudio='".$data["data"][$key]->grabacion.
-                    "' data-toggle='modal' data-target='#escuchaudio' class='btn btn-info dinau' data-id='".
-                    $row->id."' data-src='".$data["data"][$key]->grabacion."'>Audio</button>";
+                $data["data"][$key]->grabacion = $this->buildAudioButton($row, 'aud'.$key, $data["data"][$key]->grabacion);
+                $data["data"][$key]->analisis = $botonAnalisis;
                 unset($data["data"][$key]->comentario);
             }
         } else {
@@ -564,9 +567,15 @@ class Reportes_model extends CI_Model
             ORDER BY fecha DESC";
         $data = $this->datos_model->manejadorqueries($data);
         $calificar = in_array('calidad/guardareval', $this->udata['permiso']) ? true : false;
+        $canAnalyze = !empty($this->udata['perfil']) && $this->udata['perfil'] !== 'agente';
         if ($data['pag'] !== 'x') {
+            if (!in_array('analisis', $data['campos'])) {
+                $data['campos'][] = 'analisis';
+            }
+            $analysisIndex = $canAnalyze ? $this->getAnalysisIndex($data['data'], 'inbound') : [];
             foreach ($data["data"] as $key => $row) {
                 $boton = "";
+                $botonAnalisis = $this->buildAnalysisButton($row, 'inbound', $analysisIndex);
                 if ($row->calidad != '') {
                     if ($row->calidad <= 69.4) {
                         $clase = "esrojo";
@@ -588,15 +597,12 @@ class Reportes_model extends CI_Model
                     $data["data"][$key]->calidad = $row->calidad . "%";
                 } else {
                     if ($row->duracion >= "00:00:09" && $calificar) {
-                        $boton = "<button type='button' class='btn btn-success lanzamodal' data-src='".
-                        $data["data"][$key]->grabacion."' data-toggle='modal' data-target='#evalModal' data-id='".
-                        $row->id."' data-cola='".$row->campana."'>Evaluación</button>";
+                        $boton = $this->buildQualityButton($row, $data["data"][$key]->grabacion, $row->campana);
                     }
                 }
                 $data["data"][$key]->calidad .= " <span title='".$row->comentario."'>$boton</span>";
-                $data["data"][$key]->grabacion = "<button id='aud".$key.
-                    "' data-toggle='modal' data-target='#escuchaudio' class='btn btn-info dinau' data-id='".
-                    $row->id."' data-src='".$data["data"][$key]->grabacion."'>Audio</button>";
+                $data["data"][$key]->grabacion = $this->buildAudioButton($row, 'aud'.$key, $data["data"][$key]->grabacion);
+                $data["data"][$key]->analisis = $botonAnalisis;
             }
         } else {
             // Agregamos el en encabezado "Comentario de calidad" al final, solo si es el reporte csv
@@ -609,6 +615,394 @@ class Reportes_model extends CI_Model
         }
 
         return $data;
+    }
+
+    public function analisis_general($data) {
+        $maswere = $this->buildAiReportWhere($data);
+        $data['prequery'] = "SELECT a.call_type tipo, a.campaign_name campana,
+            COUNT(*) total_llamadas,
+            SUM(IF(a.processing_status = 'listo', 1, 0)) listas,
+            SUM(IF(a.processing_status = 'pendiente', 1, 0)) pendientes,
+            SUM(IF(a.processing_status = 'procesando', 1, 0)) procesando,
+            SUM(IF(a.processing_status = 'error', 1, 0)) errores,
+            SUM(IF(a.sentiment_label = 'positivo', 1, 0)) positivas,
+            SUM(IF(a.sentiment_label = 'neutro', 1, 0)) neutras,
+            SUM(IF(a.sentiment_label = 'negativo', 1, 0)) negativas,
+            ROUND(AVG(a.duracion_segundos), 1) promedio_audio_seg,
+            ROUND(AVG(a.processing_duration_seconds), 1) promedio_proceso_seg,
+            ROUND(AVG(a.transcription_seconds_per_minute), 2) rendimiento_promedio
+            FROM call_ai_analysis a
+            WHERE 1 = 1 $maswere
+            GROUP BY a.call_type, a.campaign_name
+            ORDER BY a.campaign_name, a.call_type";
+        $data = $this->datos_model->manejadorqueries($data);
+        $totales = $this->db->query("SELECT 'General' tipo, 'Todos los registros' campana,
+            COUNT(*) total_llamadas,
+            SUM(IF(a.processing_status = 'listo', 1, 0)) listas,
+            SUM(IF(a.processing_status = 'pendiente', 1, 0)) pendientes,
+            SUM(IF(a.processing_status = 'procesando', 1, 0)) procesando,
+            SUM(IF(a.processing_status = 'error', 1, 0)) errores,
+            SUM(IF(a.sentiment_label = 'positivo', 1, 0)) positivas,
+            SUM(IF(a.sentiment_label = 'neutro', 1, 0)) neutras,
+            SUM(IF(a.sentiment_label = 'negativo', 1, 0)) negativas,
+            ROUND(AVG(a.duracion_segundos), 1) promedio_audio_seg,
+            ROUND(AVG(a.processing_duration_seconds), 1) promedio_proceso_seg,
+            ROUND(AVG(a.transcription_seconds_per_minute), 2) rendimiento_promedio
+            FROM call_ai_analysis a
+            WHERE 1 = 1 $maswere")->row();
+        $data['totales'] = empty($totales) ? false : array_values(get_object_vars($totales));
+
+        return $data;
+    }
+
+    public function analisis_inbound($data) {
+        return $this->analysisDetailReport($data, 'inbound');
+    }
+
+    public function analisis_outbound($data) {
+        return $this->analysisDetailReport($data, 'outbound');
+    }
+
+    public function protocolo_general($data) {
+        $maswere = $this->buildAiProtocolWhere($data);
+        $scoresSubquery = "SELECT s.id_call_ai_analysis,
+                s.protocol_score,
+                s.opening_score,
+                s.closing_score,
+                s.risk_level
+            FROM call_ai_score s";
+        $protocolSubquery = "SELECT pr.id_call_ai_analysis,
+                SUM(pr.result_status = 'cumple') reglas_cumple,
+                SUM(pr.result_status = 'no_cumple') reglas_no_cumple,
+                SUM(pr.result_status = 'incierto') reglas_inciertas,
+                SUM(IF(r.required = 1 AND pr.result_status = 'no_cumple', 1, 0)) fallas_criticas
+            FROM call_ai_protocol_result pr
+            LEFT JOIN call_ai_protocol_rule r ON r.id = pr.id_rule
+            GROUP BY pr.id_call_ai_analysis";
+        $recommendationsSubquery = "SELECT rec.id_call_ai_analysis,
+                SUM(rec.priority = 'alta' AND rec.status IN ('nueva', 'revisada')) recomendaciones_altas
+            FROM call_ai_recommendation rec
+            GROUP BY rec.id_call_ai_analysis";
+
+        $data['prequery'] = "SELECT a.call_type tipo,
+            a.campaign_name campana,
+            COUNT(*) llamadas_analizadas,
+            SUM(a.processing_status = 'listo') analisis_listos,
+            SUM(score.id_call_ai_analysis IS NOT NULL) llamadas_calificadas_ia,
+            ROUND(AVG(score.protocol_score), 2) score_protocolo,
+            ROUND(AVG(score.opening_score), 2) score_apertura,
+            ROUND(AVG(score.closing_score), 2) score_cierre,
+            SUM(IF(COALESCE(score.risk_level, 'sin_dato') = 'alto', 1, 0)) riesgo_alto,
+            SUM(IF(COALESCE(score.risk_level, 'sin_dato') = 'medio', 1, 0)) riesgo_medio,
+            SUM(IF(COALESCE(score.risk_level, 'sin_dato') = 'bajo', 1, 0)) riesgo_bajo,
+            SUM(IFNULL(proto.reglas_cumple, 0)) reglas_cumple,
+            SUM(IFNULL(proto.reglas_no_cumple, 0)) reglas_no_cumple,
+            SUM(IFNULL(proto.reglas_inciertas, 0)) reglas_inciertas,
+            SUM(IFNULL(proto.fallas_criticas, 0)) fallas_criticas,
+            SUM(IFNULL(rec.recomendaciones_altas, 0)) recomendaciones_altas
+            FROM call_ai_analysis a
+            LEFT JOIN ($scoresSubquery) score ON score.id_call_ai_analysis = a.id
+            LEFT JOIN ($protocolSubquery) proto ON proto.id_call_ai_analysis = a.id
+            LEFT JOIN ($recommendationsSubquery) rec ON rec.id_call_ai_analysis = a.id
+            WHERE 1 = 1 $maswere
+            GROUP BY a.call_type, a.campaign_name
+            ORDER BY a.campaign_name, a.call_type";
+        $data = $this->datos_model->manejadorqueries($data);
+
+        $totales = $this->db->query("SELECT 'General' tipo,
+            'Todos los registros' campana,
+            COUNT(*) llamadas_analizadas,
+            SUM(a.processing_status = 'listo') analisis_listos,
+            SUM(score.id_call_ai_analysis IS NOT NULL) llamadas_calificadas_ia,
+            ROUND(AVG(score.protocol_score), 2) score_protocolo,
+            ROUND(AVG(score.opening_score), 2) score_apertura,
+            ROUND(AVG(score.closing_score), 2) score_cierre,
+            SUM(IF(COALESCE(score.risk_level, 'sin_dato') = 'alto', 1, 0)) riesgo_alto,
+            SUM(IF(COALESCE(score.risk_level, 'sin_dato') = 'medio', 1, 0)) riesgo_medio,
+            SUM(IF(COALESCE(score.risk_level, 'sin_dato') = 'bajo', 1, 0)) riesgo_bajo,
+            SUM(IFNULL(proto.reglas_cumple, 0)) reglas_cumple,
+            SUM(IFNULL(proto.reglas_no_cumple, 0)) reglas_no_cumple,
+            SUM(IFNULL(proto.reglas_inciertas, 0)) reglas_inciertas,
+            SUM(IFNULL(proto.fallas_criticas, 0)) fallas_criticas,
+            SUM(IFNULL(rec.recomendaciones_altas, 0)) recomendaciones_altas
+            FROM call_ai_analysis a
+            LEFT JOIN ($scoresSubquery) score ON score.id_call_ai_analysis = a.id
+            LEFT JOIN ($protocolSubquery) proto ON proto.id_call_ai_analysis = a.id
+            LEFT JOIN ($recommendationsSubquery) rec ON rec.id_call_ai_analysis = a.id
+            WHERE 1 = 1 $maswere")->row();
+        $data['totales'] = empty($totales) ? false : array_values(get_object_vars($totales));
+
+        return $data;
+    }
+
+    public function protocolo_detalle($data) {
+        $maswere = $this->buildAiProtocolWhere($data);
+        $protocolSubquery = "SELECT pr.id_call_ai_analysis,
+                SUM(pr.result_status = 'cumple') reglas_cumple,
+                SUM(pr.result_status = 'no_cumple') reglas_no_cumple,
+                SUM(pr.result_status = 'incierto') reglas_inciertas,
+                SUM(IF(r.required = 1 AND pr.result_status = 'no_cumple', 1, 0)) fallas_criticas,
+                GROUP_CONCAT(DISTINCT IF(pr.result_status = 'no_cumple', pr.rule_name, NULL) ORDER BY pr.rule_name SEPARATOR ', ') hallazgos
+            FROM call_ai_protocol_result pr
+            LEFT JOIN call_ai_protocol_rule r ON r.id = pr.id_rule
+            GROUP BY pr.id_call_ai_analysis";
+        $recommendationsSubquery = "SELECT rec.id_call_ai_analysis,
+                GROUP_CONCAT(CONCAT(UPPER(rec.priority), ': ', rec.message) ORDER BY FIELD(rec.priority, 'alta', 'media', 'baja'), rec.id SEPARATOR ' | ') recomendaciones
+            FROM call_ai_recommendation rec
+            GROUP BY rec.id_call_ai_analysis";
+
+        $data['prequery'] = "SELECT a.call_id id,
+            DATE_FORMAT(a.fecha_llamada, '$this->dtfor') fecha,
+            a.call_type tipo,
+            a.numero,
+            a.agente,
+            a.campaign_name campana,
+            SEC_TO_TIME(a.duracion_segundos) duracion,
+            a.processing_status estatus_ai,
+            IFNULL(ROUND(score.protocol_score, 2), '') score_protocolo,
+            COALESCE(score.risk_level, 'sin_dato') riesgo,
+            IFNULL(proto.reglas_cumple, 0) reglas_cumple,
+            IFNULL(proto.reglas_no_cumple, 0) reglas_no_cumple,
+            IFNULL(proto.reglas_inciertas, 0) reglas_inciertas,
+            IFNULL(proto.fallas_criticas, 0) fallas_criticas,
+            IFNULL(proto.hallazgos, '') hallazgos,
+            IFNULL(rec.recomendaciones, '') recomendaciones,
+            SUBSTRING(REPLACE(REPLACE(IFNULL(a.transcription_text, ''), '\\r', ' '), '\\n', ' '), 1, 220) extracto,
+            a.grabacion,
+            '' analisis
+            FROM call_ai_analysis a
+            LEFT JOIN call_ai_score score ON score.id_call_ai_analysis = a.id
+            LEFT JOIN ($protocolSubquery) proto ON proto.id_call_ai_analysis = a.id
+            LEFT JOIN ($recommendationsSubquery) rec ON rec.id_call_ai_analysis = a.id
+            WHERE 1 = 1 $maswere
+            ORDER BY a.fecha_llamada DESC";
+        $data = $this->datos_model->manejadorqueries($data);
+
+        if ($data['pag'] !== 'x') {
+            foreach ($data['data'] as $key => $row) {
+                $data['data'][$key]->grabacion = $this->buildAudioButton($row, 'protoud'.$key, $data['data'][$key]->grabacion);
+                $data['data'][$key]->analisis = $this->buildAnalysisButton($row, $row->tipo, [
+                    (int)$row->id => (object)['processing_status' => $row->estatus_ai]
+                ]);
+            }
+        }
+
+        return $data;
+    }
+
+    private function analysisDetailReport($data, $callType) {
+        $maswere = $this->buildAiReportWhere($data, $callType);
+        $data['prequery'] = "SELECT a.call_id id,
+            DATE_FORMAT(a.fecha_llamada, '$this->dtfor') fecha,
+            a.numero,
+            a.agente,
+            a.campaign_name campana,
+            SEC_TO_TIME(a.duracion_segundos) duracion,
+            a.processing_status estatus_ai,
+            a.sentiment_label sentimiento,
+            IFNULL(ROUND(a.sentiment_score, 2), '') score_sentimiento,
+            IFNULL(ROUND(a.transcription_confidence, 2), '') confianza,
+            IFNULL(ROUND(a.processing_duration_seconds, 1), '') proceso_seg,
+            IFNULL(ROUND(a.transcription_seconds_per_minute, 2), '') seg_x_min,
+            IFNULL(DATE_FORMAT(a.processed_at, '$this->dtfor'), '') procesado,
+            SUBSTRING(REPLACE(REPLACE(IFNULL(a.transcription_text, ''), '\\r', ' '), '\\n', ' '), 1, 180) extracto,
+            a.grabacion,
+            '' analisis
+            FROM call_ai_analysis a
+            WHERE 1 = 1 $maswere
+            ORDER BY a.fecha_llamada DESC";
+        $data = $this->datos_model->manejadorqueries($data);
+
+        if ($data['pag'] !== 'x') {
+            foreach ($data['data'] as $key => $row) {
+                $data['data'][$key]->grabacion = $this->buildAudioButton($row, 'aiaud'.$key, $data['data'][$key]->grabacion);
+                $data['data'][$key]->analisis = $this->buildAnalysisButton($row, $callType, [
+                    (int)$row->id => (object)['processing_status' => $row->estatus_ai]
+                ]);
+            }
+        }
+
+        return $data;
+    }
+
+    private function buildAiReportWhere($data, $callType = null) {
+        $maswere  = " AND DATE(a.fecha_llamada) BETWEEN '$data[min]' AND '$data[max]'";
+        $maswere .= empty($data['campana']) ? '' : " AND a.id_campaign IN ($data[campana])";
+        if (!empty($callType)) {
+            $maswere .= " AND a.call_type = '$callType'";
+        } elseif (!empty($data['tipo']) && $data['tipo'] !== '0') {
+            $maswere .= " AND a.call_type = '".$this->db->escape_str($data['tipo'])."'";
+        }
+        if (!empty($data['agente']) && strpos($data['agente'], ',') === false) {
+            $maswere .= " AND a.id_agente = '".$this->db->escape_str($data['agente'])."'";
+        }
+        if (!empty($data['estatusai']) && $data['estatusai'] !== '0') {
+            $maswere .= " AND a.processing_status = '".$this->db->escape_str($data['estatusai'])."'";
+        }
+        if (!empty($data['sentimiento']) && $data['sentimiento'] !== '0') {
+            $maswere .= " AND a.sentiment_label = '".$this->db->escape_str($data['sentimiento'])."'";
+        }
+        if (!empty($data['busc'])) {
+            $search = $this->db->escape_like_str($data['busc']);
+            $maswere .= " AND (a.numero LIKE '%$search%' OR a.agente LIKE '%$search%' OR a.call_id LIKE '%$search%')";
+        }
+
+        return $maswere;
+    }
+
+    private function buildAiProtocolWhere($data) {
+        $maswere  = " AND DATE(a.fecha_llamada) BETWEEN '$data[min]' AND '$data[max]'";
+        $maswere .= empty($data['campana']) ? '' : " AND a.id_campaign IN ($data[campana])";
+        if (!empty($data['tipo']) && $data['tipo'] !== '0') {
+            $maswere .= " AND a.call_type = '".$this->db->escape_str($data['tipo'])."'";
+        }
+        if (!empty($data['agente']) && strpos($data['agente'], ',') === false) {
+            $maswere .= " AND a.id_agente = '".$this->db->escape_str($data['agente'])."'";
+        }
+        if (!empty($data['riesgo']) && $data['riesgo'] !== '0') {
+            $maswere .= " AND COALESCE((SELECT s.risk_level FROM call_ai_score s WHERE s.id_call_ai_analysis = a.id), 'sin_dato') = '".$this->db->escape_str($data['riesgo'])."'";
+        }
+
+        return $maswere;
+    }
+
+    private function getAnalysisIndex($rows, $callType) {
+        if (empty($rows) || !is_array($rows)) {
+            return [];
+        }
+
+        $callIds = [];
+        foreach ($rows as $row) {
+            if (!empty($row->id)) {
+                $callIds[] = (int)$row->id;
+            }
+        }
+
+        $callIds = array_values(array_unique(array_filter($callIds)));
+        if (empty($callIds)) {
+            return [];
+        }
+
+        $query = $this->db->query(
+            "SELECT call_id, processing_status FROM call_ai_analysis WHERE call_type = ? AND call_id IN (".implode(',', $callIds).")",
+            [$callType]
+        );
+
+        $index = [];
+        foreach ($query->result() as $analysis) {
+            $index[(int)$analysis->call_id] = $analysis;
+        }
+
+        return $index;
+    }
+
+    private function buildAnalysisButton($row, $callType, $analysisIndex) {
+        $canAnalyze = !empty($this->udata['perfil']) && $this->udata['perfil'] === 'admin';
+        if (!$canAnalyze || empty($row->grabacion)) {
+            return '';
+        }
+
+        $status = 'nuevo';
+        if (isset($analysisIndex[(int)$row->id])) {
+            $status = $analysisIndex[(int)$row->id]->processing_status;
+        }
+
+        $buttonClass = 'btn-outline-warning';
+        $buttonLabel = 'Analizar';
+        switch ($status) {
+            case 'pendiente':
+                $buttonClass = 'btn-outline-secondary';
+                $buttonLabel = 'Pendiente';
+                break;
+            case 'procesando':
+                $buttonClass = 'btn-outline-info';
+                $buttonLabel = 'Procesando';
+                break;
+            case 'listo':
+                $buttonClass = 'btn-warning';
+                $buttonLabel = 'Ver analisis';
+                break;
+            case 'error':
+                $buttonClass = 'btn-danger';
+                $buttonLabel = 'Error';
+                break;
+            case 'omitido':
+                $buttonClass = 'btn-outline-dark';
+                $buttonLabel = 'Omitido';
+                break;
+        }
+
+        $buttonActionClass = $status === 'nuevo' ? 'request-analysis' : 'launch-analysis';
+
+        return "<button type='button' class='btn ".$buttonClass." btn-sm ".$buttonActionClass."'".
+            " data-call-id='".$row->id."'".
+            " data-call-type='".$callType."'".
+            " data-fecha='".htmlspecialchars($row->fecha, ENT_QUOTES, 'UTF-8')."'".
+            " data-agente='".htmlspecialchars($row->agente, ENT_QUOTES, 'UTF-8')."'".
+            " data-numero='".htmlspecialchars($row->numero, ENT_QUOTES, 'UTF-8')."'".
+            " data-campana='".htmlspecialchars($row->campana, ENT_QUOTES, 'UTF-8')."'".
+            " data-src='".htmlspecialchars($row->grabacion, ENT_QUOTES, 'UTF-8')."'".
+            " data-toggle='modal' data-target='#analysisModal'>".$buttonLabel."</button>";
+    }
+
+    private function pickRowValue($row, array $keys, $default = '') {
+        $values = get_object_vars($row);
+        foreach ($keys as $key) {
+            if (array_key_exists($key, $values) && $values[$key] !== null && $values[$key] !== '') {
+                return (string)$values[$key];
+            }
+        }
+
+        return $default;
+    }
+
+    private function buildAudioButton($row, $buttonId, $audioSource) {
+        $attrs = [
+            'id' => $buttonId,
+            'data-toggle' => 'modal',
+            'data-target' => '#escuchaudio',
+            'class' => 'btn btn-info dinau',
+            'data-id' => $row->id,
+            'data-src' => $audioSource,
+            'data-fecha' => $this->pickRowValue($row, ['fecha', 'Fecha']),
+            'data-agente' => $this->pickRowValue($row, ['agente', 'Agente']),
+            'data-numero' => $this->pickRowValue($row, ['numero', 'Numero', 'Número', 'Caller ID']),
+            'data-campana' => $this->pickRowValue($row, ['campana', 'Campaña', 'campaign_name']),
+            'data-duracion' => $this->pickRowValue($row, ['duracion', 'Duración', 'duration']),
+            'data-estatus' => $this->pickRowValue($row, ['estatus', 'Estatus', 'estatus_ai']),
+        ];
+
+        $parts = [];
+        foreach ($attrs as $name => $value) {
+            $parts[] = $name."='".htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8')."'";
+        }
+
+        return '<button '.implode(' ', $parts).'>Audio</button>';
+    }
+
+    private function buildQualityButton($row, $audioSource, $campaignName) {
+        $attrs = [
+            'type' => 'button',
+            'class' => 'btn btn-success lanzamodal',
+            'data-src' => $audioSource,
+            'data-toggle' => 'modal',
+            'data-target' => '#evalModal',
+            'data-id' => $row->id,
+            'data-cola' => $campaignName,
+            'data-fecha' => $this->pickRowValue($row, ['fecha', 'Fecha']),
+            'data-agente' => $this->pickRowValue($row, ['agente', 'Agente']),
+            'data-numero' => $this->pickRowValue($row, ['numero', 'Numero', 'Número', 'Caller ID']),
+            'data-campana' => $this->pickRowValue($row, ['campana', 'Campaña', 'campaign_name'], $campaignName),
+            'data-duracion' => $this->pickRowValue($row, ['duracion', 'Duración', 'duration']),
+            'data-estatus' => $this->pickRowValue($row, ['estatus', 'Estatus']),
+        ];
+
+        $parts = [];
+        foreach ($attrs as $name => $value) {
+            $parts[] = $name."='".htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8')."'";
+        }
+
+        return '<button '.implode(' ', $parts).'>Evaluación</button>';
     }
 
     public function abandono($data) {
@@ -631,9 +1025,7 @@ class Reportes_model extends CI_Model
         $data = $this->datos_model->manejadorqueries($data);
         if ($data['pag'] !== 'x') {
             foreach ($data["data"] as $key => $row) {
-                $data["data"][$key]->grabacion = "<button id='aud".$key.
-                    "' data-toggle='modal' data-target='#escuchaudio' class='btn btn-info dinau' data-id='".
-                    $row->id."' data-src='".$data["data"][$key]->grabacion."'>Audio</button>";
+                $data["data"][$key]->grabacion = $this->buildAudioButton($row, 'aud'.$key, $data["data"][$key]->grabacion);
             }
         }
 
@@ -660,9 +1052,7 @@ class Reportes_model extends CI_Model
         $data = $this->datos_model->manejadorqueries($data);
         if ($data['pag'] !== 'x') {
             foreach ($data["data"] as $key => $row) {
-                $data["data"][$key]->grabacion = "<button id='aud".$key.
-                    "' data-toggle='modal' data-target='#escuchaudio' class='btn btn-info dinau' data-id='".
-                    $row->id."' data-src='".$data["data"][$key]->grabacion."'>Audio</button>";
+                $data["data"][$key]->grabacion = $this->buildAudioButton($row, 'aud'.$key, $data["data"][$key]->grabacion);
             }
         }
 

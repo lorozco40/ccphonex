@@ -21,6 +21,23 @@ Este repositorio contiene solo lo necesario para levantar otra instancia o servi
 - `scripts/`: scripts operativos de contingencia y correccion.
 - `docs/`: documentacion operativa.
 
+## Estado actual de analisis de llamadas IA
+
+El repositorio ya incluye una primera implementacion funcional para:
+
+- transcripcion local con Faster-Whisper
+- analisis de sentimiento
+- analisis de protocolo, score y recomendaciones
+- analisis a demanda desde reportes inbound y outbound
+- reprocesos de mayor calidad para casos puntuales
+
+Documentacion clave:
+
+- `docs/ESTADO_ANALISIS_LLAMADAS_IA.md`
+- `docs/WORKER_TRANSCRIPCION_OPERACION.md`
+- `docs/REPORTES_ANALISIS_SENTIMIENTO.md`
+- `docs/PLAN_RECOMENDACIONES_EVALUACION_CUMPLIMIENTO_SCRIPT.md`
+
 ## Incluye
 
 - Version de contingencia de acceso.

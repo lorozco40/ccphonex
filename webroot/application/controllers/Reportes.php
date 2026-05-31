@@ -8,8 +8,29 @@ class Reportes extends MY_Controller
 {
 
     public $posibles_titulos = [
+        'analisis'   => 'Analisis',
+        'analisis_listos' => 'Analisis listos',
         'campana'    => 'Campaña',
+        'estatus_ai' => 'Estatus AI',
+        'extracto' => 'Extracto',
+        'fallas_criticas' => 'Fallas criticas',
         'id_campana' => 'ID Campaña',
+        'hallazgos' => 'Hallazgos',
+        'llamadas_analizadas' => 'Llamadas analizadas',
+        'llamadas_calificadas_ia' => 'Llamadas calificadas IA',
+        'recomendaciones' => 'Recomendaciones',
+        'recomendaciones_altas' => 'Recomendaciones altas',
+        'reglas_cumple' => 'Reglas cumple',
+        'reglas_inciertas' => 'Reglas inciertas',
+        'reglas_no_cumple' => 'Reglas no cumple',
+        'riesgo' => 'Riesgo',
+        'riesgo_alto' => 'Riesgo alto',
+        'riesgo_bajo' => 'Riesgo bajo',
+        'riesgo_medio' => 'Riesgo medio',
+        'score_apertura' => 'Score apertura',
+        'score_cierre' => 'Score cierre',
+        'score_protocolo' => 'Score protocolo',
+        'tipo' => 'Tipo',
         'grabacion'  => 'Grabación',
         'duracion'   => 'Duración',
         'numero'     => 'Número',
@@ -215,6 +236,9 @@ class Reportes extends MY_Controller
         $data['campanas']           = $this->datos_model->getCampanas();
         $data['title']              = 'Abandono';
         $data['jscript']            = 'reportes/reporte';
+        $data['grande']             = true;
+        $data['wide']               = true;
+        $data['dense']              = true;
         $data['massel']['Llamadas'] = [
             '0'=>'Todas ...',
             'Abandonada'=>'Abandonadas',
@@ -263,6 +287,9 @@ class Reportes extends MY_Controller
         $data['campanas'] = $this->datos_model->getCampanas();
         $data['title']    = 'Tiempo de espera';
         $data['jscript']  = 'reportes/reporte';
+        $data['grande']   = true;
+        $data['wide']     = true;
+        $data['dense']    = true;
 
         $this->armado->mostrar(array(
             'view' => 'reportes/reporte',
@@ -425,6 +452,166 @@ class Reportes extends MY_Controller
         $data['massel']['Calidad']  = ['0'=>'Todas ...','Evaluadas'=>'Evaluadas','Noevaluadas'=>'No evaluadas'];
         $data['massel']['Llamadas'] = ['0'=>'Todas ...','Terminada'=>'Terminadas','Abandonada'=>'Abandonadas'];
         $data['masinput']['CallerId o Número'] = 'busc';
+
+        $this->armado->mostrar(array(
+            'view' => 'reportes/reporte',
+            'data' => $data,
+        ));
+    }
+
+    public function analisis_general() {
+        $data['campanas'] = $this->datos_model->getCampanas();
+        $data['agentes']  = $this->datos_model->getRelUsers(["cam"=>$data['campanas'], "act"=>FALSE]);
+        $data['cual']     = 'analisis_general';
+        $data['title']    = 'Analisis IA General';
+        $data['jscript']  = 'reportes/reporte';
+        $data['grande']   = true;
+        $data['wide']     = true;
+        $data['dense']    = true;
+        $data['massel']['EstatusAI'] = [
+            '0' => 'Todos ...',
+            'pendiente' => 'Pendiente',
+            'procesando' => 'Procesando',
+            'listo' => 'Listo',
+            'error' => 'Error',
+            'omitido' => 'Omitido',
+        ];
+        $data['massel']['Sentimiento'] = [
+            '0' => 'Todos ...',
+            'positivo' => 'Positivo',
+            'neutro' => 'Neutro',
+            'negativo' => 'Negativo',
+            'sin_dato' => 'Sin dato',
+        ];
+        $data['massel']['Tipo'] = [
+            '0' => 'Todos ...',
+            'inbound' => 'Inbound',
+            'outbound' => 'Outbound',
+        ];
+
+        $this->armado->mostrar(array(
+            'view' => 'reportes/reporte',
+            'data' => $data,
+        ));
+    }
+
+    public function analisis_inbound() {
+        $data['campanas'] = $this->datos_model->getCampanas();
+        $data['agentes']  = $this->datos_model->getRelUsers(["cam"=>$data['campanas'], "act"=>FALSE]);
+        $data['cual']     = 'analisis_inbound';
+        $data['title']    = 'Analisis IA Inbound';
+        $data['jscript']  = 'reportes/reporte';
+        $data['grande']   = true;
+        $data['wide']     = true;
+        $data['dense']    = true;
+        $data['wrapable'] = ['agente', 'campana', 'extracto'];
+        $data['massel']['EstatusAI'] = [
+            '0' => 'Todos ...',
+            'pendiente' => 'Pendiente',
+            'procesando' => 'Procesando',
+            'listo' => 'Listo',
+            'error' => 'Error',
+            'omitido' => 'Omitido',
+        ];
+        $data['massel']['Sentimiento'] = [
+            '0' => 'Todos ...',
+            'positivo' => 'Positivo',
+            'neutro' => 'Neutro',
+            'negativo' => 'Negativo',
+            'sin_dato' => 'Sin dato',
+        ];
+        $data['masinput']['ID o Número'] = 'busc';
+
+        $this->armado->mostrar(array(
+            'view' => 'reportes/reporte',
+            'data' => $data,
+        ));
+    }
+
+    public function analisis_outbound() {
+        $data['campanas'] = $this->datos_model->getCampanas();
+        $data['agentes']  = $this->datos_model->getRelUsers(["cam"=>$data['campanas'], "act"=>FALSE]);
+        $data['cual']     = 'analisis_outbound';
+        $data['title']    = 'Analisis IA Outbound';
+        $data['jscript']  = 'reportes/reporte';
+        $data['grande']   = true;
+        $data['wide']     = true;
+        $data['dense']    = true;
+        $data['wrapable'] = ['agente', 'campana', 'extracto'];
+        $data['massel']['EstatusAI'] = [
+            '0' => 'Todos ...',
+            'pendiente' => 'Pendiente',
+            'procesando' => 'Procesando',
+            'listo' => 'Listo',
+            'error' => 'Error',
+            'omitido' => 'Omitido',
+        ];
+        $data['massel']['Sentimiento'] = [
+            '0' => 'Todos ...',
+            'positivo' => 'Positivo',
+            'neutro' => 'Neutro',
+            'negativo' => 'Negativo',
+            'sin_dato' => 'Sin dato',
+        ];
+        $data['masinput']['ID o Número'] = 'busc';
+
+        $this->armado->mostrar(array(
+            'view' => 'reportes/reporte',
+            'data' => $data,
+        ));
+    }
+
+    public function protocolo_general() {
+        $data['campanas'] = $this->datos_model->getCampanas();
+        $data['agentes']  = $this->datos_model->getRelUsers(["cam"=>$data['campanas'], "act"=>FALSE]);
+        $data['cual']     = 'protocolo_general';
+        $data['title']    = 'Cumplimiento IA General';
+        $data['jscript']  = 'reportes/reporte';
+        $data['grande']   = true;
+        $data['wide']     = true;
+        $data['dense']    = true;
+        $data['massel']['Tipo'] = [
+            '0' => 'Todos ...',
+            'inbound' => 'Inbound',
+            'outbound' => 'Outbound',
+        ];
+        $data['massel']['Riesgo'] = [
+            '0' => 'Todos ...',
+            'alto' => 'Alto',
+            'medio' => 'Medio',
+            'bajo' => 'Bajo',
+            'sin_dato' => 'Sin dato',
+        ];
+
+        $this->armado->mostrar(array(
+            'view' => 'reportes/reporte',
+            'data' => $data,
+        ));
+    }
+
+    public function protocolo_detalle() {
+        $data['campanas'] = $this->datos_model->getCampanas();
+        $data['agentes']  = $this->datos_model->getRelUsers(["cam"=>$data['campanas'], "act"=>FALSE]);
+        $data['cual']     = 'protocolo_detalle';
+        $data['title']    = 'Cumplimiento IA Detalle';
+        $data['jscript']  = 'reportes/reporte';
+        $data['grande']   = true;
+        $data['wide']     = true;
+        $data['dense']    = true;
+        $data['wrapable'] = ['agente', 'campana', 'hallazgos', 'recomendaciones', 'extracto'];
+        $data['massel']['Tipo'] = [
+            '0' => 'Todos ...',
+            'inbound' => 'Inbound',
+            'outbound' => 'Outbound',
+        ];
+        $data['massel']['Riesgo'] = [
+            '0' => 'Todos ...',
+            'alto' => 'Alto',
+            'medio' => 'Medio',
+            'bajo' => 'Bajo',
+            'sin_dato' => 'Sin dato',
+        ];
+        $data['masinput']['ID o Número'] = 'busc';
 
         $this->armado->mostrar(array(
             'view' => 'reportes/reporte',
